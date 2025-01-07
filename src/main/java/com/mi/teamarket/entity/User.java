@@ -9,15 +9,10 @@ import com.baomidou.mybatisplus.annotation.TableName;
 public class User {
     @TableId(value = "user_id", type = IdType.AUTO)
     private int user_id;
-    @TableField("username")
     private String username;
-    @TableField("password_hash")
     private String password_hash;
-    @TableField("phone_number")
     private String phone_number;
-    @TableField("address")
     private String address;
-    @TableField("user_type")
     private String user_type;
 
     public User(){}
@@ -77,5 +72,17 @@ public class User {
 
     public void setUser_type(String user_type) {
         this.user_type = user_type;
+    }
+
+    @Override
+    public String toString() {
+        return "User{" +
+                "user_id=" + user_id +
+                ", username='" + username + '\'' +
+                ", password_hash='" + password_hash + '\'' +
+                ", phone_number='" + phone_number + '\'' +
+                ", address='" + address + '\'' +
+                ", user_type='" + user_type + '\'' +
+                '}';
     }
 }
