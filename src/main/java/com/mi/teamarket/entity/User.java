@@ -4,85 +4,58 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import lombok.Data;
 
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+
+@Data
 @TableName("user")
 public class User {
     @TableId(value = "user_id", type = IdType.AUTO)
-    private int user_id;
+    private Integer userId;
+    @TableField("username")
     private String username;
-    private String password_hash;
-    private String phone_number;
+    @TableField("password_hash")
+    private String passwordHash;
+    @TableField("phone_number")
+    private String phoneNumber;
+    @TableField("address")
     private String address;
-    private String user_type;
+    @TableField("user_type")
+    private String userType;
 
     public User(){}
 
-    public User(int user_id, String username, String password_hash, String phone_number, String address, String user_type) {
-        this.user_id = user_id;
+    public User(int userId, String username, String passwordHash, String phoneNumber, String address, String userType) {
+        this.userId = userId;
         this.username = username;
-        this.password_hash = password_hash;
-        this.phone_number = phone_number;
+        this.passwordHash = passwordHash;
+        this.phoneNumber = phoneNumber;
         this.address = address;
-        this.user_type = user_type;
+        this.userType = userType;
     }
 
-    public int getUser_id() {
-        return user_id;
-    }
-
-    public void setUser_id(int user_id) {
-        this.user_id = user_id;
-    }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    public String getPassword_hash() {
-        return password_hash;
-    }
-
-    public void setPassword_hash(String password_hash) {
-        this.password_hash = password_hash;
-    }
-
-    public String getPhone_number() {
-        return phone_number;
-    }
-
-    public void setPhone_number(String phone_number) {
-        this.phone_number = phone_number;
-    }
-
-    public String getAddress() {
-        return address;
-    }
-
-    public void setAddress(String address) {
-        this.address = address;
-    }
-
-    public String getUser_type() {
-        return user_type;
-    }
-
-    public void setUser_type(String user_type) {
-        this.user_type = user_type;
-    }
-
-    @Override
-    public String toString() {
-        return "User{" +
-                "user_id=" + user_id +
-                ", username='" + username + '\'' +
-                ", password_hash='" + password_hash + '\'' +
-                ", phone_number='" + phone_number + '\'' +
-                ", address='" + address + '\'' +
-                ", user_type='" + user_type + '\'' +
-                '}';
+    public static String getMD5(String input) {
+        try {
+            // 获取MessageDigest实例，指定算法为MD5
+            MessageDigest md = MessageDigest.getInstance("MD5");
+            // 将输入字符串转换为字节数组并更新到MessageDigest中
+            md.update(input.getBytes());
+            // 获取加密后的字节数组结果
+            byte[] digest = md.digest();
+            // 用于将字节数组转换为十六进制字符串的字符数组
+            char[] hexChars = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
+            StringBuilder sb = new StringBuilder();
+            // 遍历字节数组，将每个字节转换为十六进制字符串并添加到StringBuilder中
+            for (byte b : digest) {
+                sb.append(hexChars[(b >> 4) & 0x0F]);
+                sb.append(hexChars[b & 0x0F]);
+            }
+            return sb.toString();
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 }

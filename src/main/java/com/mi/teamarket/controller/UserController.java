@@ -1,21 +1,111 @@
 package com.mi.teamarket.controller;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.mi.teamarket.entity.User;
 import com.mi.teamarket.mapper.UserMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 
 @RestController
+@CrossOrigin(origins = "*")
 @RequestMapping("/user")
 public class UserController {
     @Autowired
     private UserMapper userMapper;
 
-    @GetMapping("/select/{user_id}")
-    public String getUsers(@PathVariable("user_id") Integer user_id){
+    @GetMapping("/select-id/{user_id}")
+    public User selectUserById(@PathVariable("user_id") Integer user_id) {
         User user = userMapper.selectById(user_id);
+        // 这里要模糊User的信息
+        System.out.println(user.toString());
+        return user;
+    }
+
+    @PostMapping("/select-user-by-id-and-password/")
+    public User selectUserByIdAndPassword(@RequestParam("userId") Integer userId, @RequestParam("password") String password) {
+        String pwdHash = User.getMD5(password);
+        Map<String, Object> columnMap = new HashMap<>();
+        columnMap.put("user_id", userId);
+        columnMap.put("password_hash", pwdHash);
+        List<User> u = userMapper.selectByMap(columnMap);
+
+        if (u.isEmpty()) return new User();
+        System.out.println(u.getFirst());
+        return u.getFirst();
+    }
+
+    @GetMapping("/select-phonenumber/{phone_number}")
+    public User selectUserByPhoneNum(@PathVariable("phone_number") String pn) {
+        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("phone_number", pn);
+        return userMapper.selectOne(queryWrapper);
+    }
+
+    @GetMapping("/select/")
+    public List<User> selectUsersAll() {
+        List<User> users = userMapper.selectList(Wrappers.emptyWrapper());
+        // userMapper.selectList();
+        System.out.println("查询所有的用户");
+        users.forEach(System.out::println);
+        return users;
+    }
+
+    @GetMapping("/select-usertype/{user_type}")
+    public List<User> selectCustomerUsers(@PathVariable("user_type") String userType) {
+        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("user_type", userType);
+        List<User> users = userMapper.selectList(queryWrapper);
+        System.out.println("查询所有的" + userType + "用户");
+        users.forEach(System.out::println);
+        return users;
+    }
+
+    @PostMapping("/insert-user")
+    public String insertUser(@RequestBody User user) {
+        user.setPasswordHash(User.getMD5(user.getPasswordHash()));
         System.out.println(user);
-        return "Hello, user_id " + user_id +", Success!";
+        userMapper.insert(user);
+        return "Success";
+    }
+//    @DeleteMapping("/delete-user")
+//    public String deleteUser(@RequestBody UserDel ud){
+//        Integer id = ud.getUserId();
+//        String pwdHash = User.getMD5(ud.getPassword());
+//
+//        Map<String, Object> columnMap = new HashMap<>();
+//        columnMap.put("user_id", id);
+//        columnMap.put("password_hash", pwdHash);
+//
+//        List<User> u = userMapper.selectByMap(columnMap);
+//        if (!u.isEmpty()) {
+//            userMapper.deleteByMap(columnMap);
+//            return "Success";
+//        } else {
+//            return "没有找到匹配的用户，无法删除";
+//        }
+//
+//    }
+
+    @PostMapping("/delete-user")
+    public String deleteUser(@RequestParam("userId") Integer userId, @RequestParam("password") String password) {
+        String pwdHash = User.getMD5(password);
+        Map<String, Object> columnMap = new HashMap<>();
+        columnMap.put("user_id", userId);
+        columnMap.put("password_hash", pwdHash);
+
+        List<User> u = userMapper.selectByMap(columnMap);
+        if (!u.isEmpty()) {
+            userMapper.deleteByMap(columnMap);
+            return "Success";
+        } else {
+            return "没有找到匹配的用户，无法删除";
+        }
+
     }
 }
