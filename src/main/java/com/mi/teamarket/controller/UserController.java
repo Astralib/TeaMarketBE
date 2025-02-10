@@ -35,7 +35,11 @@ public class UserController {
         columnMap.put("password_hash", pwdHash);
         List<User> u = userMapper.selectByMap(columnMap);
 
-        if (u.isEmpty()) return new User();
+        if (u.isEmpty()) {
+            User user = new User();
+            user.setUserIsNotExist(true);
+            return user;
+        }
         System.out.println(u.getFirst());
         return u.getFirst();
     }
@@ -67,12 +71,16 @@ public class UserController {
     }
 
     @PostMapping("/insert-user")
-    public String insertUser(@RequestBody User user) {
+    public User insertUser(@RequestBody User user) {
         user.setPasswordHash(User.getMD5(user.getPasswordHash()));
         System.out.println(user);
         userMapper.insert(user);
-        return "Success";
+
+        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("phone_number", user.getPhoneNumber());
+        return userMapper.selectOne(queryWrapper);
     }
+
 //    @DeleteMapping("/delete-user")
 //    public String deleteUser(@RequestBody UserDel ud){
 //        Integer id = ud.getUserId();

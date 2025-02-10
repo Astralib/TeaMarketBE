@@ -12,6 +12,8 @@ import java.security.NoSuchAlgorithmException;
 @Data
 @TableName("user")
 public class User {
+    @TableField(exist = false)
+    private boolean userIsNotExist = false;
     @TableId(value = "user_id", type = IdType.AUTO)
     private Integer userId;
     @TableField("username")
@@ -25,7 +27,8 @@ public class User {
     @TableField("user_type")
     private String userType;
 
-    public User(){}
+    public User() {
+    }
 
     public User(int userId, String username, String passwordHash, String phoneNumber, String address, String userType) {
         this.userId = userId;
