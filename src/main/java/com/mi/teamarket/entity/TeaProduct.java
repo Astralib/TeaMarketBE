@@ -12,7 +12,7 @@ import java.math.BigDecimal;
 @TableName("tea_product")
 public class TeaProduct {
     @TableId(value = "product_id", type = IdType.AUTO)
-    private Integer product_id;
+    private Integer productId;
     @TableField("product_name")
     private String productName;
     @TableField("origin")

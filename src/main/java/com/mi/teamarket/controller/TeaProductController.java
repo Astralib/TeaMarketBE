@@ -20,6 +20,7 @@ public class TeaProductController {
     @GetMapping("/getOneProduct")
     public TeaProduct getOneProduct() {
         var tp_list = teaProductMapper.selectList(null);
+        if (tp_list.isEmpty()) return new TeaProduct();
         return tp_list.getFirst();
     }
 

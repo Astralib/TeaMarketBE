@@ -1,6 +1,11 @@
 package com.mi.teamarket.entity;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+
+@Data
+@AllArgsConstructor
 public class Status {
-    public boolean IsSuccess;
-    public String Message;
+    private boolean IsSuccess;
+    private String Message;
 }

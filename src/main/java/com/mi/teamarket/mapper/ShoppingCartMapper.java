@@ -1,10 +1,9 @@
 package com.mi.teamarket.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.mi.teamarket.entity.User;
+import com.mi.teamarket.entity.ShoppingCart;
 import org.apache.ibatis.annotations.Mapper;
 
 @Mapper
-public interface UserMapper extends BaseMapper<User> {
-
+public interface ShoppingCartMapper extends BaseMapper<ShoppingCart> {
 }

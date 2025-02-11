@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.mi.teamarket.entity.User;
 import com.mi.teamarket.mapper.UserMapper;
+import com.mi.teamarket.utility.Utility;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -29,7 +30,7 @@ public class UserController {
 
     @PostMapping("/select-user-by-id-and-password/")
     public User selectUserByIdAndPassword(@RequestParam("userId") Integer userId, @RequestParam("password") String password) {
-        String pwdHash = User.getMD5(password);
+        String pwdHash = Utility.getMD5(password);
         Map<String, Object> columnMap = new HashMap<>();
         columnMap.put("user_id", userId);
         columnMap.put("password_hash", pwdHash);
@@ -72,7 +73,7 @@ public class UserController {
 
     @PostMapping("/insert-user")
     public User insertUser(@RequestBody User user) {
-        user.setPasswordHash(User.getMD5(user.getPasswordHash()));
+        user.setPasswordHash(Utility.getMD5(user.getPasswordHash()));
         System.out.println(user);
         userMapper.insert(user);
 
@@ -81,28 +82,10 @@ public class UserController {
         return userMapper.selectOne(queryWrapper);
     }
 
-//    @DeleteMapping("/delete-user")
-//    public String deleteUser(@RequestBody UserDel ud){
-//        Integer id = ud.getUserId();
-//        String pwdHash = User.getMD5(ud.getPassword());
-//
-//        Map<String, Object> columnMap = new HashMap<>();
-//        columnMap.put("user_id", id);
-//        columnMap.put("password_hash", pwdHash);
-//
-//        List<User> u = userMapper.selectByMap(columnMap);
-//        if (!u.isEmpty()) {
-//            userMapper.deleteByMap(columnMap);
-//            return "Success";
-//        } else {
-//            return "没有找到匹配的用户，无法删除";
-//        }
-//
-//    }
 
     @PostMapping("/delete-user")
     public String deleteUser(@RequestParam("userId") Integer userId, @RequestParam("password") String password) {
-        String pwdHash = User.getMD5(password);
+        String pwdHash = Utility.getMD5(password);
         Map<String, Object> columnMap = new HashMap<>();
         columnMap.put("user_id", userId);
         columnMap.put("password_hash", pwdHash);
