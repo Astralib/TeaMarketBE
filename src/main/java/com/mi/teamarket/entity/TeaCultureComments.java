@@ -23,7 +23,7 @@ public class TeaCultureComments {
     @TableField("content")
     private String content;
 
-    @TableField("`like`")
+    @TableField("like_count")
     private Integer likeCount;
 
     @TableField("time")

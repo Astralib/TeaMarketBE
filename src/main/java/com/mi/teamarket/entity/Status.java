@@ -8,4 +8,12 @@ import lombok.Data;
 public class Status {
     private boolean IsSuccess;
     private String Message;
+
+    public static Status getSuccessInstance() {
+        return new Status(true, "操作成功！");
+    }
+
+    public static Status getFailureInstance() {
+        return new Status(true, "操作成功！");
+    }
 }
