@@ -23,6 +23,8 @@ public class ShoppingCart {
     private String packageStyle;
     @TableField("is_selected")
     private boolean isSelected;
+    @TableField("order_id")
+    private Integer orderId;
     @TableField("is_valid")
     private Boolean isValid;
 }
