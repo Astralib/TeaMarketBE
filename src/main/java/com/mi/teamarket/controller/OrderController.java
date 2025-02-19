@@ -6,6 +6,7 @@ import com.mi.teamarket.mapper.OrderMapper;
 import com.mi.teamarket.mapper.ShoppingCartMapper;
 import com.mi.teamarket.mapper.TeaProductMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
@@ -106,7 +107,9 @@ public class OrderController {
         return Status.getSuccessInstance();
     }
 
+    // 支付
     @PostMapping("/pay-the-order/{order_id}")
+    @Transactional(rollbackFor = Exception.class)
     public Status payOrder(@PathVariable("order_id") Integer id) {
         var order = orderMapper.selectById(id);
 
@@ -115,11 +118,22 @@ public class OrderController {
         qw1.eq("order_id", order.getOrderId());
         qw1.eq("is_valid", false);
         var items = shoppingCartMapper.selectList(qw1);
+
+        // 检查库存是否足够
+        for (var x : items) {
+            var tp = teaProductMapper.selectById(x.getProductId());
+            if (tp.getStock().compareTo(x.getQuantity()) < 0) {
+                throw new RuntimeException("库存不够扣减"); // 库存不足，抛出异常触发事务回滚
+            }
+        }
+
+        // 库存足够，进行批量扣减
         for (var x : items) {
             var tp = teaProductMapper.selectById(x.getProductId());
             tp.setStock(tp.getStock().subtract(x.getQuantity()));
             teaProductMapper.insertOrUpdate(tp);
         }
+
         this.modifyOrderStatus(order.getOrderId(), OrderStatus.AWAITING_DELIVERY);
         return Status.getSuccessInstance();
     }

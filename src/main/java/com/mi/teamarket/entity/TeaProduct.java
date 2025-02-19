@@ -1,9 +1,6 @@
 package com.mi.teamarket.entity;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
+import com.baomidou.mybatisplus.annotation.*;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -11,6 +8,10 @@ import java.math.BigDecimal;
 @Data
 @TableName("tea_product")
 public class TeaProduct {
+
+    @Version
+    private Integer version;
+
     @TableId(value = "product_id", type = IdType.AUTO)
     private Integer productId;
     @TableField("product_name")
