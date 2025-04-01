@@ -75,9 +75,7 @@ public class OrderController {
         queryWrapper.eq("user_id", userId);
         if (status >= 0 && status <= 5) queryWrapper.eq("status", OrderStatus.is(status));
         var orders = orderMapper.selectList(queryWrapper);
-
         List<OrderInstance> lo = new ArrayList<>();
-
         for (var item : orders) {
             ProductInfo pi;
             QueryWrapper<ShoppingCart> qw1 = new QueryWrapper<>();
@@ -94,12 +92,12 @@ public class OrderController {
             var no = new OrderInstance(item.getOrderId(), item.getUserId(), item.getCreationTime(), item.getSettlementTime(), pi_list, item.getTotalNum(), item.getTotalAmount(), item.getStatus());
             lo.add(no);
         }
-
         return lo;
     }
 
     @PostMapping("/modify-order-status/{order_id}/{status}")
-    public Status modifyOrderStatus(@PathVariable("order_id") Integer orderId, @PathVariable("status") int status) {
+    public Status modifyOrderStatus(@PathVariable("order_id") Integer orderId, @PathVariable("status") String status_str) {
+        int status = Integer.parseInt(status_str);
         if (status < 0 || status > 5) return Status.getFailureInstance();
         var order = orderMapper.selectById(orderId);
         order.setStatus(OrderStatus.is(status));
@@ -134,7 +132,7 @@ public class OrderController {
             teaProductMapper.insertOrUpdate(tp);
         }
 
-        this.modifyOrderStatus(order.getOrderId(), OrderStatus.AWAITING_DELIVERY);
+        this.modifyOrderStatus(order.getOrderId(), String.valueOf(OrderStatus.AWAITING_DELIVERY));
         return Status.getSuccessInstance();
     }
 

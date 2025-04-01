@@ -1,6 +1,7 @@
 package com.mi.teamarket.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.mi.teamarket.entity.SimpleArticle;
 import com.mi.teamarket.entity.Status;
 import com.mi.teamarket.entity.TeaCulture;
 import com.mi.teamarket.entity.TeaCultureComments;
@@ -25,6 +26,16 @@ public class TeaCultureController {
         var x = teaCultureMapper.selectById(1);
         System.out.println(x);
         return x;
+    }
+
+    @GetMapping("/get-all-article")
+    public List<SimpleArticle> getArticles() {
+        return teaCultureMapper.getSimples();
+    }
+
+    @GetMapping("/get-arcticle-by/{id}")
+    public TeaCulture getArticleById(@PathVariable Integer id) {
+        return teaCultureMapper.selectById(id);
     }
 
     @GetMapping("/get-comments-by-tc-id/{id}/{sorted_by_what}")
