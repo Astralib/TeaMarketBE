@@ -5,6 +5,7 @@ import com.mi.teamarket.entity.*;
 import com.mi.teamarket.mapper.OrderMapper;
 import com.mi.teamarket.mapper.ShoppingCartMapper;
 import com.mi.teamarket.mapper.TeaProductMapper;
+import com.mi.teamarket.utility.Utility;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
@@ -102,6 +103,15 @@ public class OrderController {
         var order = orderMapper.selectById(orderId);
         order.setStatus(OrderStatus.is(status));
         orderMapper.insertOrUpdate(order);
+        return Status.getSuccessInstance();
+    }
+
+    @PostMapping("/finish-order/{order_id}")
+    public Status finishOrder(@PathVariable("order_id") Integer orderId) {
+        var theOrder = orderMapper.selectById(orderId);
+        theOrder.setSettlementTime(Utility.getCurrentTimeString());
+        theOrder.setStatus(OrderStatus.is(OrderStatus.FINISHED));
+        orderMapper.insertOrUpdate(theOrder);
         return Status.getSuccessInstance();
     }
 

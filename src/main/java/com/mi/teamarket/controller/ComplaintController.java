@@ -4,11 +4,15 @@ package com.mi.teamarket.controller;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.mi.teamarket.entity.Complaint;
 import com.mi.teamarket.entity.Status;
+import com.mi.teamarket.entity.UserComplaint;
 import com.mi.teamarket.mapper.ComplaintMapper;
 import com.mi.teamarket.mapper.OrderMapper;
+import com.mi.teamarket.mapper.UserMapper;
+import com.mi.teamarket.utility.Utility;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -16,6 +20,9 @@ import java.util.List;
 public class ComplaintController {
     @Autowired
     private ComplaintMapper complaintMapper;
+
+    @Autowired
+    private UserMapper userMapper;
 
     @Autowired
     private OrderMapper orderMapper;
@@ -37,10 +44,33 @@ public class ComplaintController {
     }
 
     @GetMapping("/get-comp-by-userId/{userId}")
-    public List<Complaint> getCompListByUserId(@PathVariable("userId") Integer userId) {
+    public List<UserComplaint> getCompListByUserId(@PathVariable("userId") Integer userId) {
         QueryWrapper<Complaint> qw = new QueryWrapper<>();
         qw.eq("user_id", userId);
-        return complaintMapper.selectList(qw);
+        List<Complaint> list = complaintMapper.selectList(qw);
+        List<UserComplaint> returnList = new ArrayList<>();
+        for (var x : list) {
+            var uc = new UserComplaint();
+            var o = orderMapper.selectById(x.getOrderId());
+            var u = userMapper.selectById(x.getUserId());
+            uc.setComplaintId(x.getComplaintId());
+            uc.setOrderId(o.getOrderId());
+            uc.setOrderStatus(o.getStatus());
+            uc.setOrderCreatedTime(Utility.formatDateTime(o.getCreationTime()));
+            uc.setUserId(u.getUserId());
+            uc.setUsername(u.getUsername());
+            uc.setContent(x.getContent());
+            uc.setReply(x.getReply());
+            uc.setComplaintCreatedTime(x.getTime());
+            returnList.add(uc);
+        }
+        return returnList;
+    }
+
+    @GetMapping("/delete-by-id/{id}")
+    public Status deleteById(@PathVariable("id") Integer id) {
+        complaintMapper.deleteById(id);
+        return Status.getSuccessInstance();
     }
 
 }
