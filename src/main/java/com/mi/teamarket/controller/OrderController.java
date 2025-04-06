@@ -90,7 +90,7 @@ public class OrderController {
                 pi = new ProductInfo(curr.getProductName(), curr.getDescription(), x.getQuantity(), curr.getPrice(), x.getPackageStyle());
                 pi_list.add(pi);
             }
-            var no = new OrderInstance(item.getOrderId(), item.getUserId(), item.getCreationTime(), item.getSettlementTime(), pi_list, item.getTotalNum(), item.getTotalAmount(), item.getStatus());
+            var no = new OrderInstance(item.getOrderId(), item.getUserId(), item.getCreationTime(), item.getSettlementTime(), pi_list, item.getTotalNum(), item.getTotalAmount(), item.getStatus(), item.isComplained());
             lo.add(no);
         }
         return lo;

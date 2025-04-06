@@ -32,6 +32,8 @@ public class Order {
     private String settlementTime;
     @TableField("status")
     private String status;
+    @TableField("complained")
+    private boolean complained = false;
 
     public Order(Integer userId, Integer totalNum, BigDecimal totalAmount) {
         this.userId = userId;

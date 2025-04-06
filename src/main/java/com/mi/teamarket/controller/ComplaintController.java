@@ -32,7 +32,10 @@ public class ComplaintController {
         var c = new Complaint();
         c.setOrderId(orderId);
         c.setContent(content);
-        c.setUserId(orderMapper.selectById(orderId).getUserId());
+        var o = orderMapper.selectById(orderId);
+        o.setComplained(true);
+        orderMapper.insertOrUpdate(o);
+        c.setUserId(o.getUserId());
         // var user = orderMapper.selectById(orderId).getUserId();
         complaintMapper.insert(c);
         return Status.getSuccessInstance();
@@ -69,6 +72,9 @@ public class ComplaintController {
 
     @GetMapping("/delete-by-id/{id}")
     public Status deleteById(@PathVariable("id") Integer id) {
+        var o = orderMapper.selectById(complaintMapper.selectById(id).getOrderId());
+        o.setComplained(false);
+        orderMapper.insertOrUpdate(o);
         complaintMapper.deleteById(id);
         return Status.getSuccessInstance();
     }

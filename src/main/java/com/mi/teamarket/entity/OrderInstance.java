@@ -22,5 +22,6 @@ public class OrderInstance {
     private Integer totalNum;
     private BigDecimal totalAmount;
     private String status;
+    private boolean complained;
 
 }
