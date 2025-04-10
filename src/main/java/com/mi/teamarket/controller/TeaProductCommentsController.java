@@ -66,8 +66,28 @@ public class TeaProductCommentsController {
             ll.add(tc);
         }
         return ll;
-
     }
+
+    @GetMapping("/getCommentsByIds/{UserId}/{ProductId}")
+    public List<TeaComments> getCommentsByProductId(@PathVariable Integer UserId, @PathVariable Integer ProductId) {
+        QueryWrapper<TeaProductComments> qw = new QueryWrapper<>();
+        qw.eq("tp_id", ProductId);
+        qw.eq("user_id", UserId);
+        var l = teaProductCommentsMapper.selectList(qw);
+        List<TeaComments> ll = new ArrayList<>();
+        for (var tpc : l) {
+            TeaComments tc = makeComment(tpc);
+            ll.add(tc);
+        }
+        return ll;
+    }
+
+    @GetMapping("/deleteCommentById/{id}")
+    public Status deleteCommentById(@PathVariable Integer id) {
+        teaProductCommentsMapper.deleteById(id);
+        return Status.getSuccessInstance();
+    }
+
 
     private TeaComments makeComment(TeaProductComments tpc) {
         var tc = new TeaComments();
