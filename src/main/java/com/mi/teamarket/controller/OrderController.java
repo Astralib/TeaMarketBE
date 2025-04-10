@@ -14,15 +14,10 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 @RestController
 @RequestMapping("/order")
 public class OrderController {
-    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(4);
-
     @Autowired
     private OrderMapper orderMapper;
 
@@ -34,8 +29,7 @@ public class OrderController {
 
     @PostMapping("/settle-order/{user_id}")
     public Status settleOrder(@PathVariable("user_id") Integer userId) {
-        var newOrder = new Order(userId, 0, BigDecimal.ZERO);
-        orderMapper.insertOrUpdate(newOrder); // 插入后数据回填到 newOrder 中，拿到orderID
+
 
         // 找到用户购物车中的所有 已选择的商品
         QueryWrapper<ShoppingCart> queryWrapper = new QueryWrapper<>();
@@ -43,6 +37,14 @@ public class OrderController {
         queryWrapper.eq("is_selected", true);
         queryWrapper.eq("is_valid", true);
         var shoppingCarts = shoppingCartMapper.selectList(queryWrapper);
+
+        if (shoppingCarts.isEmpty()) {
+            return Status.getFailureInstance("购物车暂无被选择的商品");
+        }
+
+        var newOrder = new Order(userId, 0, BigDecimal.ZERO);
+        orderMapper.insertOrUpdate(newOrder); // 插入后数据回填到 newOrder 中，拿到orderID
+
 
         // 设置订单内产品总数
         newOrder.setTotalNum(shoppingCarts.size());
@@ -60,12 +62,6 @@ public class OrderController {
         total = total.setScale(2, RoundingMode.HALF_UP);
         newOrder.setTotalAmount(total);
         orderMapper.insertOrUpdate(newOrder);
-
-        // 设置15分钟后订单超时
-        scheduler.schedule(() -> {
-            newOrder.setStatus(OrderStatus.is(OrderStatus.ORDER_TIMEOUT));
-            orderMapper.insertOrUpdate(newOrder);
-        }, 15, TimeUnit.MINUTES);
 
         return Status.getSuccessInstance();
     }

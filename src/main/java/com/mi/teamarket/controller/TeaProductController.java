@@ -1,10 +1,12 @@
 package com.mi.teamarket.controller;
 
 import com.mi.teamarket.entity.TeaProduct;
+import com.mi.teamarket.mapper.ShoppingCartMapper;
 import com.mi.teamarket.mapper.TeaProductMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @RestController
@@ -13,6 +15,9 @@ import java.util.List;
 public class TeaProductController {
     @Autowired
     private TeaProductMapper teaProductMapper;
+    @Autowired
+    private ShoppingCartMapper shoppingCartMapper;
+
 
     @GetMapping("/getOneProduct")
     public TeaProduct getOneProduct() {
@@ -29,5 +34,15 @@ public class TeaProductController {
     @GetMapping("/get-product-by-id/{id}")
     public TeaProduct getProductById(@PathVariable("id") Integer id) {
         return teaProductMapper.selectById(id);
+    }
+
+    @GetMapping("/getSales/{id}")
+    public Integer getSalesById(@PathVariable Integer id) {
+        return shoppingCartMapper.getTotalSales(id);
+    }
+
+    @GetMapping("/getValues/{id}")
+    public BigDecimal getValuesById(@PathVariable Integer id) {
+        return shoppingCartMapper.getTotalValues(id);
     }
 }

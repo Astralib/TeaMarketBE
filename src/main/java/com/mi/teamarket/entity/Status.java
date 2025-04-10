@@ -10,10 +10,18 @@ public class Status {
     private String Message;
 
     public static Status getSuccessInstance() {
-        return new Status(true, "操作成功！");
+        return getSuccessInstance("操作成功！");
+    }
+
+    public static Status getSuccessInstance(String message) {
+        return new Status(true, message);
     }
 
     public static Status getFailureInstance() {
-        return new Status(true, "操作成功！");
+        return getFailureInstance("操作失败！");
+    }
+
+    public static Status getFailureInstance(String message) {
+        return new Status(false, message);
     }
 }

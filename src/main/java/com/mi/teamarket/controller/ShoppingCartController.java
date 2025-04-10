@@ -1,8 +1,8 @@
 package com.mi.teamarket.controller;
 
-import com.mi.teamarket.entity.ItemInShoppingCart;
-import com.mi.teamarket.entity.ShoppingCart;
-import com.mi.teamarket.entity.Status;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.mi.teamarket.entity.*;
+import com.mi.teamarket.mapper.OrderMapper;
 import com.mi.teamarket.mapper.ShoppingCartMapper;
 import com.mi.teamarket.mapper.TeaProductMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +22,10 @@ public class ShoppingCartController {
 
     @Autowired
     private TeaProductMapper teaProductMapper;
+
+    @Autowired
+    private OrderMapper orderMapper;
+
 
     @GetMapping("/get-all-items-by-id/{user_id}")
     public List<ItemInShoppingCart> getAllItemsById(@PathVariable("user_id") Integer id) {
@@ -102,4 +106,43 @@ public class ShoppingCartController {
 
     }
 
+    @GetMapping("/getTeaProductByOrderId/{id}")
+    public List<TeaProduct> getTeaProductByOrderId(@PathVariable Integer id) {
+        QueryWrapper<ShoppingCart> qw = new QueryWrapper<>();
+        qw.eq("order_id", id);
+        qw.eq("is_valid", false);
+        var l = shoppingCartMapper.selectList(qw);
+        var return_list = new ArrayList<TeaProduct>();
+        for (var x : l) {
+            return_list.add(teaProductMapper.selectById(x.getProductId()));
+        }
+        return return_list;
+    }
+
+    @GetMapping("/getTeaProductStructByOrderId/{id}")
+    public List<TeaProductStruct> getTeaProductStructByOrderId(@PathVariable Integer id) {
+        Integer userId = orderMapper.selectById(id).getUserId();
+        QueryWrapper<ShoppingCart> qw = new QueryWrapper<>();
+        qw.eq("order_id", id);
+        qw.eq("is_valid", false);
+        var l = shoppingCartMapper.selectList(qw);
+        var return_list = new ArrayList<TeaProductStruct>();
+        for (var x : l) {
+            var z = teaProductMapper.selectById(x.getProductId());
+            return_list.add(new TeaProductStruct(x.getProductId(), userId, id, z.getOrigin(), z.getProductName(), z.getDescription(), z.getImageBase64()));
+        }
+        return return_list;
+    }
+
+    @GetMapping("/getTeaProductStructByUserId/{id}")
+    public List<TeaProductStruct> getTeaProductStructByUserId(@PathVariable Integer id) {
+        var li = shoppingCartMapper.getShoppingCartSet(id);
+        List<TeaProductStruct> return_list = new ArrayList<>();
+        for (var lii : li) {
+            System.out.println(lii);
+            var tp = teaProductMapper.selectById(lii);
+            return_list.add(new TeaProductStruct(lii, id, 0, tp.getOrigin(), tp.getProductName(), tp.getDescription(), tp.getImageBase64()));
+        }
+        return return_list;
+    }
 }

@@ -25,7 +25,7 @@ public class Order {
     private Integer totalNum;
     @TableField("total_amount")
     private BigDecimal totalAmount;
-    @JsonFormat(pattern = "yyyy年MM月dd日 HH:mm:ss", timezone = "GMT+8")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     @TableField(value = "creation_time")
     private Date creationTime;
     @TableField("settlement_time")
