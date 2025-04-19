@@ -2,6 +2,7 @@ package com.mi.teamarket.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.mi.teamarket.entity.Status;
 import com.mi.teamarket.entity.User;
 import com.mi.teamarket.mapper.UserMapper;
 import com.mi.teamarket.utility.Utility;
@@ -79,6 +80,24 @@ public class UserController {
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("phone_number", user.getPhoneNumber());
         return userMapper.selectOne(queryWrapper);
+    }
+
+    @PostMapping("/update/{id}")
+    public Status updateUserInfo(@RequestParam String username,
+                                 @RequestParam String password,
+                                 @RequestParam String address,
+                                 @RequestParam String phone_num,
+                                 @PathVariable Integer id) {
+        var u = userMapper.selectById(id);
+        if (u == null) {
+            return Status.getFailureInstance("没有找到匹配的用户");
+        }
+        u.setUsername(username);
+        u.setPasswordHash(Utility.getMD5(password));
+        u.setAddress(address);
+        u.setPhoneNumber(phone_num);
+        userMapper.insertOrUpdate(u);
+        return Status.getSuccessInstance("修改用户信息成功");
     }
 
 
