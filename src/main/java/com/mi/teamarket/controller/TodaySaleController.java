@@ -45,11 +45,11 @@ public class TodaySaleController {
         QueryWrapper<TodaySale> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("product_id", productId);
         var list = todaySaleMapper.selectList(queryWrapper);
-        if (list.isEmpty()) return BigDecimal.ONE;
         for (var x : list) {
             x.setValid(Utility.isCurrentTimeBetweenDates(x.getStartTime(), x.getEndTime()));
         }
         list.removeIf(obj -> !obj.isValid());
+        if (list.isEmpty()) return BigDecimal.ONE;
         return list.getLast().getDiscount();
     }
 }

@@ -74,7 +74,6 @@ public class OrderController {
         return Status.getSuccessInstance();
     }
 
-    // todo 修改逻辑，让单个商品也可以享受优惠
     @PostMapping("/settle-one-order/{sc_id}")
     public Status settleOneOrder(@PathVariable("sc_id") Integer Id) {
         // 找到购物车项目，创建订单
@@ -82,24 +81,14 @@ public class OrderController {
         var newOrder = new Order(sc.getUserId(), 0, BigDecimal.ZERO);
         orderMapper.insertOrUpdate(newOrder); // 插入后数据回填到 newOrder 中，拿到orderID
 
-        // 拿到该订单对应商品的折扣
-        QueryWrapper<TodaySale> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("product_id", sc.getProductId());
-        // 折扣会过期，所以要找到没过期的折扣
-        var ts_list = todaySaleMapper.selectList(queryWrapper);
-        for (var x : ts_list) {
-            x.setValid(Utility.isCurrentTimeBetweenDates(x.getStartTime(), x.getEndTime()));
-        }
-        ts_list.removeIf(obj -> !obj.isValid());
-        if (ts_list.isEmpty()) return Status.getFailureInstance("暂无折扣");
-        var ts = ts_list.getFirst();
+        var discount = todaySaleController.getTodaySaleById(sc.getProductId());
 
         // 计算订单总金额 并更新购物车
         BigDecimal total = BigDecimal.ZERO;
         var teaProduct = teaProductMapper.selectById(sc.getProductId());
-        total = total.add(teaProduct.getPrice().multiply(sc.getQuantity()).multiply(ts.getDiscount()));
+        total = total.add(teaProduct.getPrice().multiply(sc.getQuantity()).multiply(discount));
         sc.setIsValid(false);
-        sc.setDiscount(ts.getDiscount());
+        sc.setDiscount(discount);
         sc.setOrderId(newOrder.getOrderId());
         shoppingCartMapper.insertOrUpdate(sc);
 

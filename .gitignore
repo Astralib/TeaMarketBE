@@ -31,3 +31,7 @@ build/
 
 ### VS Code ###
 .vscode/
+
+
+### Persional Files ###
+./src/main/java/com/mi/teamarket/apikey.txt
