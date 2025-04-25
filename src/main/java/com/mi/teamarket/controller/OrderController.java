@@ -5,6 +5,7 @@ import com.mi.teamarket.entity.*;
 import com.mi.teamarket.mapper.OrderMapper;
 import com.mi.teamarket.mapper.ShoppingCartMapper;
 import com.mi.teamarket.mapper.TeaProductMapper;
+import com.mi.teamarket.mapper.TodaySaleMapper;
 import com.mi.teamarket.utility.Utility;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,9 +28,15 @@ public class OrderController {
     @Autowired
     private TeaProductMapper teaProductMapper;
 
+    @Autowired
+    private TodaySaleMapper todaySaleMapper;
+
+    @Autowired
+    private TodaySaleController todaySaleController;
+
+
     @PostMapping("/settle-order/{user_id}")
     public Status settleOrder(@PathVariable("user_id") Integer userId) {
-
 
         // 找到用户购物车中的所有 已选择的商品
         QueryWrapper<ShoppingCart> queryWrapper = new QueryWrapper<>();
@@ -52,8 +59,9 @@ public class OrderController {
         // 计算订单总金额
         BigDecimal total = BigDecimal.ZERO;
         for (var item : shoppingCarts) {
+            item.setDiscount(todaySaleController.getTodaySaleById(item.getProductId()));
             var teaProduct = teaProductMapper.selectById(item.getProductId());
-            total = total.add(teaProduct.getPrice().multiply(item.getQuantity()));
+            total = total.add(teaProduct.getPrice().multiply(item.getQuantity()).multiply(item.getDiscount()));
             item.setIsValid(false);
             item.setOrderId(newOrder.getOrderId());
         }
@@ -65,6 +73,45 @@ public class OrderController {
 
         return Status.getSuccessInstance();
     }
+
+    // todo 修改逻辑，让单个商品也可以享受优惠
+    @PostMapping("/settle-one-order/{sc_id}")
+    public Status settleOneOrder(@PathVariable("sc_id") Integer Id) {
+        // 找到购物车项目，创建订单
+        var sc = shoppingCartMapper.selectById(Id);
+        var newOrder = new Order(sc.getUserId(), 0, BigDecimal.ZERO);
+        orderMapper.insertOrUpdate(newOrder); // 插入后数据回填到 newOrder 中，拿到orderID
+
+        // 拿到该订单对应商品的折扣
+        QueryWrapper<TodaySale> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("product_id", sc.getProductId());
+        // 折扣会过期，所以要找到没过期的折扣
+        var ts_list = todaySaleMapper.selectList(queryWrapper);
+        for (var x : ts_list) {
+            x.setValid(Utility.isCurrentTimeBetweenDates(x.getStartTime(), x.getEndTime()));
+        }
+        ts_list.removeIf(obj -> !obj.isValid());
+        if (ts_list.isEmpty()) return Status.getFailureInstance("暂无折扣");
+        var ts = ts_list.getFirst();
+
+        // 计算订单总金额 并更新购物车
+        BigDecimal total = BigDecimal.ZERO;
+        var teaProduct = teaProductMapper.selectById(sc.getProductId());
+        total = total.add(teaProduct.getPrice().multiply(sc.getQuantity()).multiply(ts.getDiscount()));
+        sc.setIsValid(false);
+        sc.setDiscount(ts.getDiscount());
+        sc.setOrderId(newOrder.getOrderId());
+        shoppingCartMapper.insertOrUpdate(sc);
+
+        // 修改订单相关配置
+        newOrder.setTotalNum(1);
+        total = total.setScale(2, RoundingMode.HALF_UP);
+        newOrder.setTotalAmount(total);
+        orderMapper.insertOrUpdate(newOrder);
+
+        return Status.getSuccessInstance();
+    }
+
 
     @GetMapping("/get-all/{user_id}/{status}")
     public List<OrderInstance> getAllOrders(@PathVariable("user_id") Integer userId, @PathVariable("status") int status) {
@@ -83,7 +130,7 @@ public class OrderController {
             var pi_list = new ArrayList<ProductInfo>();
             for (var x : itemsInThisSC) {
                 var curr = teaProductMapper.selectById(x.getProductId());
-                pi = new ProductInfo(curr.getProductName(), curr.getDescription(), x.getQuantity(), curr.getPrice(), x.getPackageStyle());
+                pi = new ProductInfo(curr.getProductName(), curr.getDescription(), x.getQuantity(), curr.getPrice(), x.getDiscount(), x.getPackageStyle());
                 pi_list.add(pi);
             }
             var no = new OrderInstance(item.getOrderId(), item.getUserId(), item.getCreationTime(), item.getSettlementTime(), pi_list, item.getTotalNum(), item.getTotalAmount(), item.getStatus(), item.isComplained());

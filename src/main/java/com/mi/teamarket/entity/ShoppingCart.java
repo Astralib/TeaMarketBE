@@ -19,6 +19,8 @@ public class ShoppingCart {
     private Integer productId;
     @TableField("quantity")
     private BigDecimal quantity;
+    @TableField("discount")
+    private BigDecimal discount;
     @TableField("package_style")
     private String packageStyle;
     @TableField("is_selected")

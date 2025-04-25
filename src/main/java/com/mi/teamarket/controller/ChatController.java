@@ -77,6 +77,4 @@ public class ChatController {
         }
         return return_list;
     }
-
-
 }

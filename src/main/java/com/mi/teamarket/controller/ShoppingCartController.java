@@ -38,11 +38,13 @@ public class ShoppingCartController {
             var y = teaProductMapper.selectById(x.getProductId());
             return_list.add(new ItemInShoppingCart(
                     x.getShoppingCartId(),
+                    x.getProductId(),
                     y.getProductName(),
                     y.getOrigin(),
                     y.getPrice(),
                     y.getStock(),
                     x.getQuantity(),
+                    x.getDiscount(),
                     x.getPackageStyle(),
                     y.getImageBase64(),
                     x.isSelected()

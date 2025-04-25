@@ -46,4 +46,10 @@ public class Utility {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         return sdf.format(date);
     }
+
+    public static boolean isCurrentTimeBetweenDates(Date startDate, Date endDate) {
+        Date currentDate = new Date();
+        return (currentDate.after(startDate) || currentDate.equals(startDate)) &&
+                (currentDate.before(endDate) || currentDate.equals(endDate));
+    }
 }
