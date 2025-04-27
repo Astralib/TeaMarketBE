@@ -7,18 +7,18 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 
+import java.util.Date;
+
 @Data
-@TableName("chat")
-public class Chat {
-    @TableId(value = "chat_id", type = IdType.AUTO)
-    Integer chatId;
-    @TableField("from_id")
-    Integer fromId;
-    @TableField("to_id")
-    Integer toId;
-    String message;
+@TableName("video")
+public class Video {
+    @TableId(type = IdType.AUTO)
+    private Integer videoId;
+    @TableField("releaser_id")
+    private Integer releaserId;
+    private String title;
+    private String description;
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    String time;
-    @TableField("session_id")
-    Integer sessionId;
+    private Date time;
+    private String location;
 }

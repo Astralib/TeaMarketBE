@@ -18,6 +18,6 @@ public class Complaint {
     Integer userId;
     String content;
     String reply;
-    @JsonFormat(pattern = "yyyy年mm月dd日 HH:mm:ss", timezone = "GMT+8")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     String time;
 }

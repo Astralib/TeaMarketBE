@@ -15,7 +15,7 @@ import java.util.List;
 public class OrderInstance {
     private Integer orderId;
     private Integer userId;
-    @JsonFormat(pattern = "yyyy年MM月dd日 HH:mm:ss", timezone = "GMT+8")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date creationTime;
     private String settlementTime;
     private List<ProductInfo> productInfoList;
