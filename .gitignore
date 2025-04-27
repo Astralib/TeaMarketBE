@@ -34,4 +34,4 @@ build/
 
 
 ### Persional Files ###
-./src/main/java/com/mi/teamarket/apikey.txt
+/src/main/java/com/mi/teamarket/apikey.txt
