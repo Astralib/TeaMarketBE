@@ -6,6 +6,7 @@ import com.mi.teamarket.mapper.ImageMapper;
 import com.mi.teamarket.utility.Utility;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -31,5 +32,12 @@ public class ActivityController {
             x.setImageBase64(imageMapper.selectById(x.getImageId()).getImageBase64());
         }
         return activities;
+    }
+
+    @GetMapping("/getActivityById/{id}")
+    public Activity getActivityById(@PathVariable Integer id) {
+        var activity = activityMapper.selectById(id);
+        activity.setImageBase64(imageMapper.selectById(activity.getImageId()).getImageBase64());
+        return activity;
     }
 }

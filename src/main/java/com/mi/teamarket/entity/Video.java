@@ -20,5 +20,6 @@ public class Video {
     private String description;
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date time;
-    private String location;
+    @TableField("unique_index")
+    private String uniqueIndex;
 }

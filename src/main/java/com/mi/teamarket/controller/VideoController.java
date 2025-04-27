@@ -4,6 +4,7 @@ import com.mi.teamarket.entity.Video;
 import com.mi.teamarket.mapper.VideoMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -16,5 +17,10 @@ public class VideoController {
     @GetMapping("/getLatestVideo")
     public Video getLatestVideo() {
         return videoMapper.getLatestVideo();
+    }
+
+    @GetMapping("/getVideoById/{id}")
+    public Video getVideoById(@PathVariable Integer id) {
+        return videoMapper.selectById(id);
     }
 }

@@ -8,6 +8,7 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
+import java.util.Random;
 
 public class Utility {
     public static String getMD5(String input) {
@@ -52,4 +53,14 @@ public class Utility {
         return (currentDate.after(startDate) || currentDate.equals(startDate)) &&
                 (currentDate.before(endDate) || currentDate.equals(endDate));
     }
+
+    public static String generateUniqueIndex() {
+        Random random = new Random();
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < 8; i++) {
+            sb.append(random.nextInt(10));
+        }
+        return System.currentTimeMillis() + "-" + sb;
+    }
+
 }
