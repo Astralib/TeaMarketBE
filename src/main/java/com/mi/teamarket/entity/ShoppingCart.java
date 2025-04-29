@@ -21,6 +21,10 @@ public class ShoppingCart {
     private BigDecimal quantity;
     @TableField("discount")
     private BigDecimal discount;
+    @TableField("special_price")
+    private BigDecimal specialPrice;
+    @TableField("limitation")
+    private BigDecimal limitation;
     @TableField("package_style")
     private String packageStyle;
     @TableField("is_selected")

@@ -16,6 +16,8 @@ public class ItemInShoppingCart {
     private BigDecimal stock;
     private BigDecimal quantity;
     private BigDecimal discount;
+    private BigDecimal specialPrice;
+    private BigDecimal limitation;
     private String packageStyle;
     private String imageBase64;
     private boolean isSelected;

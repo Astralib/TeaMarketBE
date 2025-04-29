@@ -45,6 +45,8 @@ public class ShoppingCartController {
                     y.getStock(),
                     x.getQuantity(),
                     x.getDiscount(),
+                    x.getSpecialPrice(),
+                    x.getLimitation(),
                     x.getPackageStyle(),
                     y.getImageBase64(),
                     x.isSelected()
