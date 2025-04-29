@@ -27,4 +27,7 @@ public interface VideoCommentMapper extends BaseMapper<VideoComment> {
             "FROM video_comments vc " +
             "JOIN comment_tree ct ON vc.comment_id = ct.comment_id;")
     List<VideoComment> getRelatedCommentsByCommentId(@Param("id") Integer id);
+
+    @Select("select count(*) from video_comments where is_read = false and reply_to = #{id};")
+    Integer getUnreadComments(@Param("id") Integer id);
 }

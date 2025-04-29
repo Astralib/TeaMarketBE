@@ -2,6 +2,7 @@ package com.mi.teamarket.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.mi.teamarket.entity.*;
+import com.mi.teamarket.mapper.FlashSaleMapper;
 import com.mi.teamarket.mapper.OrderMapper;
 import com.mi.teamarket.mapper.ShoppingCartMapper;
 import com.mi.teamarket.mapper.TeaProductMapper;
@@ -25,6 +26,12 @@ public class ShoppingCartController {
 
     @Autowired
     private OrderMapper orderMapper;
+
+    @Autowired
+    private FlashSaleMapper flashSaleMapper;
+
+    @Autowired
+    private OrderController orderController;
 
 
     @GetMapping("/get-all-items-by-id/{user_id}")
@@ -55,40 +62,59 @@ public class ShoppingCartController {
         return return_list;
     }
 
-    @PostMapping("/insert-or-update-item")
-    public Status InsertItem(@RequestParam("user_id") Integer userId, @RequestParam("product_id") Integer productId, @RequestParam("quantity") BigDecimal quantity) {
-        try {
-            Map<String, Object> columnMap = new HashMap<>();
-            columnMap.put("user_id", userId);
-            columnMap.put("product_id", productId);
-            columnMap.put("is_valid", true);
-            var ls = shoppingCartMapper.selectByMap(columnMap);
-            ShoppingCart sc;
-            if (ls.isEmpty()) {
-                sc = new ShoppingCart();
-                sc.setUserId(userId);
-                sc.setProductId(productId);
-            } else sc = ls.getFirst();
-            sc.setQuantity(quantity);
-            System.out.println(sc);
-            shoppingCartMapper.insertOrUpdate(sc);
-        } catch (Exception e) {
-            return new Status(false, "插入或更新数据失败");
+    @PostMapping("/insert-common-item")
+    public Status insertCommonItem(@RequestParam("user_id") Integer userId,
+                                   @RequestParam("product_id") Integer productId,
+                                   @RequestParam("quantity") BigDecimal quantity) {
+        ShoppingCart sc = new ShoppingCart();
+        sc.setUserId(userId);
+        sc.setProductId(productId);
+        sc.setQuantity(quantity);
+        shoppingCartMapper.insertOrUpdate(sc);
+        return Status.getSuccessInstance("商品插入成功");
+    }
+
+    @PostMapping("/insert-special-item")
+    public Status insertSpecialItem(@RequestParam Integer userId,
+                                    @RequestParam BigDecimal quantity,
+                                    @RequestParam Integer flashSaleId) {
+        var fs = flashSaleMapper.selectById(flashSaleId);
+
+        if (fs.getPersonLimitation().compareTo(quantity) < 0 || fs.getSpecialStock().compareTo(quantity) < 0) {
+            return Status.getFailureInstance("加入购物车失败");
         }
-        return new Status(true, "插入或更新数据成功");
+        ShoppingCart sc = new ShoppingCart();
+        sc.setUserId(userId);
+        sc.setProductId(fs.getProductId());
+        sc.setQuantity(quantity);
+        sc.setLimitation(fs.getPersonLimitation());
+        sc.setSpecialPrice(fs.getSpecialPrice());
+        shoppingCartMapper.insertOrUpdate(sc);
+        return Status.getSuccessInstance("加入购物车成功");
     }
 
     @PostMapping("/update-package-style")
-    public Status UpdatePackageStyle(@RequestParam("shopping_cart_id") Integer id, @RequestParam("quantity") BigDecimal quantity, @RequestParam("style") String style, @RequestParam("is_selected") boolean isSelected, @RequestParam("delete_this") boolean deleteThis) {
+    public Status updatePackageStyle(@RequestParam("shopping_cart_id") Integer id,
+                                     @RequestParam("quantity") BigDecimal quantity,
+                                     @RequestParam("style") String style,
+                                     @RequestParam("is_selected") boolean isSelected,
+                                     @RequestParam("delete_this") boolean deleteThis,
+                                     @RequestParam boolean buyThis) {
         try {
-            if (deleteThis) shoppingCartMapper.deleteById(id);
-            else {
-                var x = shoppingCartMapper.selectById(id);
-                x.setPackageStyle(style);
-                x.setQuantity(quantity);
-                x.setSelected(isSelected);
-                shoppingCartMapper.insertOrUpdate(x);
+            if (deleteThis) {
+                shoppingCartMapper.deleteById(id);
+                return Status.getSuccessInstance("删除成功");
             }
+            if (buyThis) {
+                orderController.settleOneOrder(id);
+                return Status.getSuccessInstance();
+            }
+            var x = shoppingCartMapper.selectById(id);
+            x.setPackageStyle(style);
+            x.setQuantity(quantity);
+            x.setSelected(isSelected);
+            shoppingCartMapper.insertOrUpdate(x);
+
         } catch (Exception e) {
             return new Status(false, "更新失败");
         }

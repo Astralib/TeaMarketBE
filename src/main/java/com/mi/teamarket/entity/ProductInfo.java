@@ -15,5 +15,7 @@ public class ProductInfo {
     private BigDecimal quantity;
     private BigDecimal price;
     private BigDecimal discount;
+    private BigDecimal specialPrice;
+    private BigDecimal limitation;
     private String packageStyle;
 }
