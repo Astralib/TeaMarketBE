@@ -2,10 +2,10 @@ package com.mi.teamarket.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.mi.teamarket.entity.*;
+import com.mi.teamarket.mapper.FlashSaleMapper;
 import com.mi.teamarket.mapper.OrderMapper;
 import com.mi.teamarket.mapper.ShoppingCartMapper;
 import com.mi.teamarket.mapper.TeaProductMapper;
-import com.mi.teamarket.mapper.TodaySaleMapper;
 import com.mi.teamarket.utility.Utility;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,7 +29,7 @@ public class OrderController {
     private TeaProductMapper teaProductMapper;
 
     @Autowired
-    private TodaySaleMapper todaySaleMapper;
+    private FlashSaleMapper flashSaleMapper;
 
     @Autowired
     private TodaySaleController todaySaleController;
@@ -61,7 +61,11 @@ public class OrderController {
         for (var item : shoppingCarts) {
             item.setDiscount(todaySaleController.getTodaySaleById(item.getProductId()));
             var teaProduct = teaProductMapper.selectById(item.getProductId());
-            total = total.add(teaProduct.getPrice().multiply(item.getQuantity()).multiply(item.getDiscount()));
+            if (item.getSpecialPrice() == null) {
+                total = total.add(teaProduct.getPrice().multiply(item.getQuantity()).multiply(item.getDiscount()));
+            } else {
+                total = total.add(item.getQuantity().multiply(item.getSpecialPrice()));
+            }
             item.setIsValid(false);
             item.setOrderId(newOrder.getOrderId());
         }
@@ -85,8 +89,14 @@ public class OrderController {
 
         // 计算订单总金额 并更新购物车
         BigDecimal total = BigDecimal.ZERO;
+
         var teaProduct = teaProductMapper.selectById(sc.getProductId());
-        total = total.add(teaProduct.getPrice().multiply(sc.getQuantity()).multiply(discount));
+        if (sc.getSpecialPrice() == null) {
+            total = total.add(teaProduct.getPrice().multiply(sc.getQuantity()).multiply(sc.getDiscount()));
+        } else {
+            total = total.add(sc.getQuantity().multiply(sc.getSpecialPrice()));
+        }
+
         sc.setIsValid(false);
         sc.setDiscount(discount);
         sc.setOrderId(newOrder.getOrderId());
@@ -119,7 +129,11 @@ public class OrderController {
             var pi_list = new ArrayList<ProductInfo>();
             for (var x : itemsInThisSC) {
                 var curr = teaProductMapper.selectById(x.getProductId());
-                pi = new ProductInfo(curr.getProductName(), curr.getDescription(), x.getQuantity(), curr.getPrice(), x.getDiscount(), x.getPackageStyle());
+                if (x.getSpecialPrice() == null) {
+                    pi = new ProductInfo(curr.getProductName(), curr.getDescription(), x.getQuantity(), curr.getPrice(), x.getDiscount(), null, null, x.getPackageStyle());
+                } else {
+                    pi = new ProductInfo(curr.getProductName(), curr.getDescription(), x.getQuantity(), curr.getPrice(), x.getDiscount(), x.getSpecialPrice(), x.getLimitation(), x.getPackageStyle());
+                }
                 pi_list.add(pi);
             }
             var no = new OrderInstance(item.getOrderId(), item.getUserId(), item.getCreationTime(), item.getSettlementTime(), pi_list, item.getTotalNum(), item.getTotalAmount(), item.getStatus(), item.isComplained());
@@ -161,17 +175,38 @@ public class OrderController {
 
         // 检查库存是否足够
         for (var x : items) {
-            var tp = teaProductMapper.selectById(x.getProductId());
-            if (tp.getStock().compareTo(x.getQuantity()) < 0) {
-                throw new RuntimeException("库存不够扣减"); // 库存不足，抛出异常触发事务回滚
+            if (x.getSpecialPrice() == null) {
+                var tp = teaProductMapper.selectById(x.getProductId());
+                if (tp.getStock().compareTo(x.getQuantity()) < 0) {
+                    throw new RuntimeException("库存不够扣减"); // 库存不足，抛出异常触发事务回滚
+                }
+            } else {
+                QueryWrapper<FlashSale> qw = new QueryWrapper<>();
+                qw.eq("product_id", x.getProductId());
+                qw.eq("special_price", x.getSpecialPrice());
+                qw.eq("person_limitation", x.getLimitation());
+                var fs = flashSaleMapper.selectOne(qw);
+                if (fs.getSpecialStock().compareTo(x.getQuantity()) < 0)
+                    throw new RuntimeException("库存不够扣减"); // 库存不足，抛出异常触发事务回滚
             }
+
         }
 
         // 库存足够，进行批量扣减
         for (var x : items) {
-            var tp = teaProductMapper.selectById(x.getProductId());
-            tp.setStock(tp.getStock().subtract(x.getQuantity()));
-            teaProductMapper.insertOrUpdate(tp);
+            if (x.getSpecialPrice() == null) {
+                var tp = teaProductMapper.selectById(x.getProductId());
+                tp.setStock(tp.getStock().subtract(x.getQuantity()));
+                teaProductMapper.insertOrUpdate(tp);
+            } else {
+                QueryWrapper<FlashSale> qw = new QueryWrapper<>();
+                qw.eq("product_id", x.getProductId());
+                qw.eq("special_price", x.getSpecialPrice());
+                qw.eq("person_limitation", x.getLimitation());
+                var fs = flashSaleMapper.selectOne(qw);
+                fs.setSpecialStock(fs.getSpecialStock().subtract(x.getQuantity()));
+                flashSaleMapper.insertOrUpdate(fs);
+            }
         }
 
         this.modifyOrderStatus(order.getOrderId(), String.valueOf(OrderStatus.AWAITING_DELIVERY));

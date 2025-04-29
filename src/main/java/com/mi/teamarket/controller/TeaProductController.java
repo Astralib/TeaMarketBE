@@ -1,5 +1,6 @@
 package com.mi.teamarket.controller;
 
+import com.mi.teamarket.entity.ProductViewInfo;
 import com.mi.teamarket.entity.TeaProduct;
 import com.mi.teamarket.mapper.ShoppingCartMapper;
 import com.mi.teamarket.mapper.TeaProductMapper;
@@ -17,6 +18,12 @@ public class TeaProductController {
     private TeaProductMapper teaProductMapper;
     @Autowired
     private ShoppingCartMapper shoppingCartMapper;
+
+    @Autowired
+    private TodaySaleController todaySaleController;
+
+    @Autowired
+    private TeaProductCommentsController teaProductCommentsController;
 
 
     @GetMapping("/getOneProduct")
@@ -45,4 +52,18 @@ public class TeaProductController {
     public BigDecimal getValuesById(@PathVariable Integer id) {
         return shoppingCartMapper.getTotalValues(id);
     }
+
+    @GetMapping("/getProductView/{productId}")
+    public ProductViewInfo getProductView(@PathVariable Integer productId) {
+        var pvi = new ProductViewInfo();
+        var tp = getProductById(productId);
+        var ts = todaySaleController.getTodaySaleDetailById(productId);
+
+        pvi.setTeaProduct(tp);
+        pvi.setTodaySale(ts);
+        pvi.setTeaComments(teaProductCommentsController.getCommentsByProductId(productId));
+        pvi.setSales("已售出 " + getValuesById(productId) + " 斤，已完成 " + getSalesById(productId) + " 笔订单");
+        return pvi;
+    }
+
 }

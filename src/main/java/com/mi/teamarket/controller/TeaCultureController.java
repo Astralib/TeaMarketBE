@@ -1,12 +1,12 @@
 package com.mi.teamarket.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.mi.teamarket.entity.SimpleArticle;
 import com.mi.teamarket.entity.Status;
 import com.mi.teamarket.entity.TeaCulture;
 import com.mi.teamarket.entity.TeaCultureComments;
 import com.mi.teamarket.mapper.TeaCultureCommentsMapper;
 import com.mi.teamarket.mapper.TeaCultureMapper;
+import com.mi.teamarket.mapper.UserMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,6 +21,9 @@ public class TeaCultureController {
     @Autowired
     TeaCultureCommentsMapper teaCultureCommentsMapper;
 
+    @Autowired
+    UserMapper userMapper;
+
     @GetMapping("/get-one-article")
     public TeaCulture getOneArticle() {
         var x = teaCultureMapper.selectById(1);
@@ -29,8 +32,8 @@ public class TeaCultureController {
     }
 
     @GetMapping("/get-all-article")
-    public List<SimpleArticle> getArticles() {
-        return teaCultureMapper.getSimples();
+    public List<TeaCulture> getArticles() {
+        return teaCultureMapper.selectList(null);
     }
 
     @GetMapping("/get-arcticle-by/{id}")
@@ -61,7 +64,9 @@ public class TeaCultureController {
                 break;
             }
         }
-        tl.forEach(System.out::println);
+        for (var x : tl) {
+            x.setUsername(userMapper.selectById(x.getUserId()).getUsername());
+        }
         return tl;
     }
 

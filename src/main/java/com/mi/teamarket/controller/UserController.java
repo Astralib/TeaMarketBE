@@ -45,6 +45,51 @@ public class UserController {
         return u.getFirst();
     }
 
+    @PostMapping("/userRegister")
+    public Status userRegister(@RequestParam String username,
+                               @RequestParam String password,
+                               @RequestParam String address,
+                               @RequestParam String phoneNumber) {
+        User user = new User();
+        user.setUsername(username);
+        user.setPasswordHash(Utility.getMD5(password));
+        user.setAddress(address);
+        user.setPhoneNumber(phoneNumber);
+        userMapper.insertOrUpdate(user);
+        return Status.getSuccessInstance("你的用户ID为【" + user.getUserId() + "】");
+    }
+
+    @PostMapping("/userLogin")
+    public User userLogin(@RequestParam Integer userId, @RequestParam String password) {
+        QueryWrapper<User> qw = new QueryWrapper<>();
+        qw.eq("user_id", userId);
+        qw.eq("password_hash", Utility.getMD5(password));
+        var u = userMapper.selectOne(qw);
+        if (u == null) {
+            User user = new User();
+            user.setUserIsNotExist(true);
+            return user;
+        }
+        return u;
+    }
+
+    @PostMapping("/userLoginCheck")
+    public boolean userLoginCheck(@RequestParam Integer userId, @RequestParam String passwordHash) {
+        QueryWrapper<User> qw = new QueryWrapper<>();
+        qw.eq("user_id", userId);
+        qw.eq("password_hash", passwordHash);
+        var u = userMapper.selectOne(qw);
+        return u != null;
+    }
+
+    @PostMapping("/userUpdate")
+    public User userUpdate(@RequestParam Integer userId, @RequestParam String passwordHash) {
+        QueryWrapper<User> qw = new QueryWrapper<>();
+        qw.eq("user_id", userId);
+        qw.eq("password_hash", passwordHash);
+        return userMapper.selectOne(qw);
+    }
+
     @GetMapping("/select-phonenumber/{phone_number}")
     public User selectUserByPhoneNum(@PathVariable("phone_number") String pn) {
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();

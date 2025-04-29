@@ -20,6 +20,9 @@ public class TeaCultureComments {
     @TableField("user_id")
     private Integer userId;
 
+    @TableField(exist = false)
+    private String username;
+
     @TableField("content")
     private String content;
 

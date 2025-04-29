@@ -10,18 +10,24 @@ import lombok.Data;
 import java.util.Date;
 
 @Data
-@TableName("video")
-public class Video {
-    @TableId(type = IdType.AUTO)
-    private Integer videoId;
-    @TableField("releaser_id")
-    private Integer releaserId;
+@TableName("announcement")
+public class Announcement {
+    @TableId(value = "id", type = IdType.AUTO)
+    Integer id;
+
+    @TableField("releaser")
+    Integer releaserId;
+
     @TableField(exist = false)
-    private String releaserName;
-    private String title;
-    private String description;
+    String releaserName;
+
+    @TableField("title")
+    String title;
+
+    @TableField("content")
+    String content;
+
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    private Date time;
-    @TableField("unique_index")
-    private String uniqueIndex;
+    @TableField("time")
+    Date time;
 }

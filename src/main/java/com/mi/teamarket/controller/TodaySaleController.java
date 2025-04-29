@@ -52,4 +52,23 @@ public class TodaySaleController {
         if (list.isEmpty()) return BigDecimal.ONE;
         return list.getLast().getDiscount();
     }
+
+    @GetMapping("/getTodaySaleDetailById/{productId}")
+    public TodaySale getTodaySaleDetailById(@PathVariable("productId") Integer productId) {
+        QueryWrapper<TodaySale> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("product_id", productId);
+        var list = todaySaleMapper.selectList(queryWrapper);
+        for (var x : list) {
+            x.setValid(Utility.isCurrentTimeBetweenDates(x.getStartTime(), x.getEndTime()));
+        }
+        list.removeIf(obj -> !obj.isValid());
+        if (list.isEmpty()) {
+            TodaySale ts = new TodaySale();
+            ts.setValid(false);
+            return ts;
+        }
+        var ts = list.getFirst();
+        ts.setReleaser(userMapper.selectById(ts.getReleaserId()));
+        return ts;
+    }
 }
