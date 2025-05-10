@@ -2,6 +2,7 @@ package com.mi.teamarket.controller;
 
 import com.mi.teamarket.entity.ProductViewInfo;
 import com.mi.teamarket.entity.TeaProduct;
+import com.mi.teamarket.entity.TeaProductKeyValue;
 import com.mi.teamarket.mapper.ShoppingCartMapper;
 import com.mi.teamarket.mapper.TeaProductMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -66,4 +67,14 @@ public class TeaProductController {
         return pvi;
     }
 
+    @GetMapping("/getProductKV")
+    public List<TeaProductKeyValue> getProductKV() {
+        return teaProductMapper.getProductKV();
+    }
+
+    @GetMapping("/getProductsNotInFlashSaleKV/{videoId}")
+    public List<TeaProductKeyValue> getProductsNotInFlashSaleKV(@PathVariable Integer videoId) {
+        return teaProductMapper.getProductsNotInFlashSaleKV(videoId);
+    }
+    
 }

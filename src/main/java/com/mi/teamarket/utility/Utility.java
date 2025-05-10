@@ -9,6 +9,7 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.Random;
+import java.util.TimeZone;
 
 public class Utility {
     public static String getMD5(String input) {
@@ -63,4 +64,15 @@ public class Utility {
         return System.currentTimeMillis() + "-" + sb;
     }
 
+    public static Date parseDate(String dateStr) {
+        try {
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+            // 设置时区为UTC，因为输入字符串中的Z表示UTC时间
+            sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
+            // 解析字符串并返回Date对象
+            return sdf.parse(dateStr);
+        } catch (Exception e) {
+            return null;
+        }
+    }
 }

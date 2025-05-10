@@ -1,6 +1,11 @@
 spring:
   application:
     name: TeaMarket
+  servlet:
+    multipart:
+      max-file-size: 2GB
+      max-request-size: 2GB
+      enabled: true
   datasource:
     driver-class-name: org.mariadb.jdbc.Driver
     url: jdbc:mariadb://localhost:3306/tea

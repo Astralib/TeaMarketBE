@@ -1,6 +1,7 @@
 package com.mi.teamarket.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.mi.teamarket.entity.ArticleWithGoodsInfo;
 import com.mi.teamarket.entity.Status;
 import com.mi.teamarket.entity.TeaCulture;
 import com.mi.teamarket.entity.TeaCultureComments;
@@ -20,6 +21,9 @@ public class TeaCultureController {
 
     @Autowired
     TeaCultureCommentsMapper teaCultureCommentsMapper;
+
+    @Autowired
+    ActivityController activityController;
 
     @Autowired
     UserMapper userMapper;
@@ -87,5 +91,42 @@ public class TeaCultureController {
             value = teaCultureCommentsMapper.letLikeCountPP(commentId);
         } else value = teaCultureCommentsMapper.letLikeCountSS(commentId);
         return value == 1 ? Status.getSuccessInstance() : Status.getFailureInstance();
+    }
+
+    @PostMapping("/uploadTeaCulture")
+    public Status uploadTeaCulture(@RequestBody TeaCulture teaCulture) {
+        try {
+            teaCultureMapper.insertOrUpdate(teaCulture);
+        } catch (Exception e) {
+            return Status.getFailureInstance();
+        }
+        return Status.getSuccessInstance();
+    }
+
+    @GetMapping("/getArticleWithGoodsInfo")
+    public List<ArticleWithGoodsInfo> getArticleWithGoodsInfo() {
+        return teaCultureMapper.getArticleWithGoodsInfo();
+    }
+
+    @PostMapping("/updateArticleGoods")
+    public Status updateArticleGoods(@RequestParam Integer tcId, @RequestParam Integer productId, @RequestParam boolean removeIt) {
+        var tc = teaCultureMapper.selectById(tcId);
+        if (removeIt) {
+            teaCultureMapper.removeGoods(tcId);
+            return Status.getSuccessInstance("移除带货商品成功！");
+        }
+        if (tc.getTeaProductId() != null && tc.getTeaProductId().equals(productId)) {
+            return Status.getSuccessInstance("当前未更新带货产品");
+        }
+        tc.setTeaProductId(productId);
+        teaCultureMapper.insertOrUpdate(tc);
+        return Status.getSuccessInstance("带货产品更改成功！");
+    }
+
+    @PostMapping("/removeArticle")
+    public Status removeArticle(@RequestParam Integer tcId) {
+        teaCultureMapper.deleteById(tcId);
+        teaCultureCommentsMapper.delete(new QueryWrapper<TeaCultureComments>().eq("tea_culture_id", tcId));
+        return activityController.deleteActivity("article", tcId);
     }
 }

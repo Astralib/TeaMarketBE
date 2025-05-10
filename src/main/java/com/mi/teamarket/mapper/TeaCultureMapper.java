@@ -1,10 +1,13 @@
 package com.mi.teamarket.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.mi.teamarket.entity.ArticleWithGoodsInfo;
 import com.mi.teamarket.entity.SimpleArticle;
 import com.mi.teamarket.entity.TeaCulture;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
+import org.apache.ibatis.annotations.Update;
 
 import java.util.List;
 
@@ -12,4 +15,19 @@ import java.util.List;
 public interface TeaCultureMapper extends BaseMapper<TeaCulture> {
     @Select("select tc_id, title from tea_culture")
     List<SimpleArticle> getSimples();
+
+    @Select(
+            "SELECT" +
+                    "    tc.tc_id as articleId," +
+                    "    tc.title as articleTitle," +
+                    "    tp.product_id as productId," +
+                    "    tp.product_name as productName " +
+                    "FROM tea_culture tc" +
+                    "         LEFT JOIN tea_product tp ON tc.tea_product_id = tp.product_id;"
+    )
+    List<ArticleWithGoodsInfo> getArticleWithGoodsInfo();
+
+    @Update("update tea_culture set tea_product_id = null where tc_id = #{id};")
+    void removeGoods(@Param("id") Integer id);
+
 }

@@ -22,7 +22,7 @@ public class VideoCommentController {
 
     @Autowired
     private UserMapper userMapper;
-    
+
 
     @GetMapping("/getCommentsByVideoID/{id}")
     public List<VideoComment> getCommentsByVideoID(@PathVariable Integer id) {
@@ -84,6 +84,14 @@ public class VideoCommentController {
             x.setVideoName(videoMapper.selectById(x.getQuoteId()).getTitle());
         }
         return list;
+    }
+
+    @PostMapping("/setTop/{cmId}/{isTop}")
+    public Status setTop(@PathVariable Integer cmId, @PathVariable boolean isTop) {
+        var vc = videoCommentMapper.selectById(cmId);
+        vc.setIsTop(isTop);
+        videoCommentMapper.insertOrUpdate(vc);
+        return Status.getSuccessInstance();
     }
 
 }

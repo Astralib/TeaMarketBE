@@ -17,8 +17,12 @@ public class FlashSale {
     private Integer id;
     @TableField("releaser_id")
     private Integer releaserId;
+    @TableField(exist = false)
+    private String releaserName;
     @TableField("product_id")
     private Integer productId;
+    @TableField(exist = false)
+    private String productName;
     @TableField("special_price")
     private BigDecimal specialPrice;
     @TableField("special_stock")
