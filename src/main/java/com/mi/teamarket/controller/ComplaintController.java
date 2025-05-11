@@ -41,6 +41,14 @@ public class ComplaintController {
         return Status.getSuccessInstance();
     }
 
+    @PostMapping("/reply")
+    public Status reply(@RequestParam("orderId") Integer orderId, @RequestParam("reply") String content) {
+        var c = complaintMapper.selectOne(new QueryWrapper<Complaint>().eq("order_id", orderId));
+        c.setReply(content);
+        complaintMapper.insertOrUpdate(c);
+        return Status.getSuccessInstance();
+    }
+
     @GetMapping("/get-comp-by-id/{id}")
     public Complaint getCompById(@PathVariable("id") Integer id) {
         return complaintMapper.selectById(id);

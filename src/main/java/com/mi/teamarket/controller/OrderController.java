@@ -2,10 +2,7 @@ package com.mi.teamarket.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.mi.teamarket.entity.*;
-import com.mi.teamarket.mapper.FlashSaleMapper;
-import com.mi.teamarket.mapper.OrderMapper;
-import com.mi.teamarket.mapper.ShoppingCartMapper;
-import com.mi.teamarket.mapper.TeaProductMapper;
+import com.mi.teamarket.mapper.*;
 import com.mi.teamarket.utility.Utility;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,6 +30,15 @@ public class OrderController {
 
     @Autowired
     private TodaySaleController todaySaleController;
+
+    @Autowired
+    private UserMapper userMapper;
+
+    @Autowired
+    private ComplaintMapper complaintMapper;
+
+    @Autowired
+    private OrderExtensionMapper orderExtensionMapper;
 
 
     @PostMapping("/settle-order/{user_id}")
@@ -211,6 +217,67 @@ public class OrderController {
 
         this.modifyOrderStatus(order.getOrderId(), String.valueOf(OrderStatus.AWAITING_DELIVERY));
         return Status.getSuccessInstance();
+    }
+
+    @GetMapping("/get-all/{status}/{complained}")
+    public List<OrderStruct> getOrders(@PathVariable("status") Integer status, @PathVariable("complained") String complained) {
+        System.out.println(complained);
+        System.out.println(status);
+
+        List<OrderStruct> orderStructList = new ArrayList<>();
+        QueryWrapper<Order> queryWrapper = new QueryWrapper<>();
+        if (status >= 0 && status <= 5) queryWrapper.eq("status", OrderStatus.is(status));
+        else {
+            queryWrapper.ne("status", OrderStatus.is(OrderStatus.ORDER_CANCELLED));
+            queryWrapper.ne("status", OrderStatus.is(OrderStatus.ORDER_TIMEOUT));
+            queryWrapper.ne("status", OrderStatus.is(OrderStatus.PENDING_PAYMENT));
+        }
+        var orders = orderMapper.selectList(queryWrapper);
+        for (var item : orders) {
+            var os = new OrderStruct();
+            ProductInfo pi;
+            QueryWrapper<ShoppingCart> qw1 = new QueryWrapper<>();
+            qw1.eq("user_id", item.getUserId());
+            qw1.eq("order_id", item.getOrderId());
+            qw1.eq("is_valid", false);
+            var itemsInThisSC = shoppingCartMapper.selectList(qw1);
+            var pi_list = new ArrayList<ProductInfo>();
+            for (var x : itemsInThisSC) {
+                var curr = teaProductMapper.selectById(x.getProductId());
+                if (x.getSpecialPrice() == null) {
+                    pi = new ProductInfo(curr.getProductName(), curr.getDescription(), x.getQuantity(), curr.getPrice(), x.getDiscount(), null, null, x.getPackageStyle());
+                } else {
+                    pi = new ProductInfo(curr.getProductName(), curr.getDescription(), x.getQuantity(), curr.getPrice(), x.getDiscount(), x.getSpecialPrice(), x.getLimitation(), x.getPackageStyle());
+                }
+                pi_list.add(pi);
+            }
+            os.setOrderInstance(new OrderInstance(item.getOrderId(), item.getUserId(), item.getCreationTime(), item.getSettlementTime(), pi_list, item.getTotalNum(), item.getTotalAmount(), item.getStatus(), item.isComplained()));
+
+            os.setUserAddress(userMapper.selectById(item.getUserId()).getAddress());
+            os.setPhoneNumber(userMapper.selectById(item.getUserId()).getPhoneNumber());
+            var oe = orderExtensionMapper.selectOne(new QueryWrapper<OrderExtension>().eq("order_id", item.getOrderId()));
+            if (oe != null)
+                os.setExpressNumber(oe.getExpressNumber());
+            if (item.isComplained()) {
+                os.setComplaintRecord(complaintMapper.selectOne(new QueryWrapper<Complaint>().eq("order_id", item.getOrderId())).getContent());
+                os.setReply(complaintMapper.selectOne(new QueryWrapper<Complaint>().eq("order_id", item.getOrderId())).getReply());
+            }
+            orderStructList.add(os);
+        }
+//        if (complained)
+//            orderStructList.removeIf(orderStruct -> !orderStruct.getOrderInstance().isComplained());
+
+        return orderStructList;
+    }
+
+    @PostMapping("/ship")
+    public Status ship(@RequestParam Integer orderId, @RequestParam String expressNumber) {
+        var oe = new OrderExtension();
+        oe.setExpressNumber(expressNumber);
+        oe.setOrderId(orderId);
+        orderExtensionMapper.insertOrUpdate(oe);
+        modifyOrderStatus(orderId, String.valueOf(OrderStatus.DELIVERED_AWAITING_CONFIRMATION));
+        return Status.getSuccessInstance("成功发货");
     }
 
 }
