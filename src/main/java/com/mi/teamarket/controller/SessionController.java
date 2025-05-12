@@ -1,6 +1,7 @@
 package com.mi.teamarket.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.mi.teamarket.entity.ServerStatus;
 import com.mi.teamarket.entity.Session;
 import com.mi.teamarket.entity.Status;
 import com.mi.teamarket.mapper.ServerStatusMapper;
@@ -70,6 +71,28 @@ public class SessionController {
     @GetMapping("/isSessionClosed/{sessionId}")
     public Boolean isSessionClosed(@PathVariable Integer sessionId) {
         return sessionMapper.selectById(sessionId).isClosed();
+    }
+
+    @PostMapping("/closeSession/{sessionId}")
+    public Status closeSession(@PathVariable Integer sessionId) {
+        var s = sessionMapper.selectById(sessionId);
+        s.setClosed(true);
+        serverStatusMapper.releaseServer(s.getUser2());
+        sessionMapper.insertOrUpdate(s);
+        return Status.getSuccessInstance("会话已经成功关闭");
+    }
+
+    @GetMapping("/amIinSession/{userId}")
+    public Status amIinSession(@PathVariable Integer userId) {
+        QueryWrapper<ServerStatus> qw = new QueryWrapper<>();
+        qw.eq("available", false);
+        qw.eq("server_user_id", userId);
+        var ss = serverStatusMapper.selectOne(qw);
+        if (ss != null) {
+            var s = sessionMapper.selectOne(new QueryWrapper<Session>().eq("user2", userId).eq("closed", false));
+            return Status.getSuccessInstance(String.valueOf(s.getSessionId()));
+        }
+        return Status.getFailureInstance();
     }
 
 }

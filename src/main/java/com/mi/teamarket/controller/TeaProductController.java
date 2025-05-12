@@ -1,6 +1,7 @@
 package com.mi.teamarket.controller;
 
 import com.mi.teamarket.entity.ProductViewInfo;
+import com.mi.teamarket.entity.Status;
 import com.mi.teamarket.entity.TeaProduct;
 import com.mi.teamarket.entity.TeaProductKeyValue;
 import com.mi.teamarket.mapper.ShoppingCartMapper;
@@ -76,5 +77,23 @@ public class TeaProductController {
     public List<TeaProductKeyValue> getProductsNotInFlashSaleKV(@PathVariable Integer videoId) {
         return teaProductMapper.getProductsNotInFlashSaleKV(videoId);
     }
-    
+
+    @PostMapping("/updateProduct")
+    public Status updateProduct(@RequestBody TeaProduct teaProduct) {
+        teaProductMapper.insertOrUpdate(teaProduct);
+        return Status.getSuccessInstance("商品数据更新成功");
+    }
+
+    @PostMapping("/addProduct")
+    public Status insertProduct(@RequestBody TeaProduct teaProduct) {
+        teaProductMapper.insertOrUpdate(teaProduct);
+        return Status.getSuccessInstance("商品添加成功");
+    }
+
+    @PostMapping("/deleteIt")
+    public Status delete(@RequestParam Integer id) {
+        teaProductMapper.deleteById(id);
+        return Status.getSuccessInstance("商品数据更新成功");
+    }
+
 }

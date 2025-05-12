@@ -1,12 +1,12 @@
 package com.mi.teamarket.controller;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.mi.teamarket.entity.Announcement;
+import com.mi.teamarket.entity.Status;
 import com.mi.teamarket.mapper.AnnouncementMapper;
 import com.mi.teamarket.mapper.UserMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -20,11 +20,32 @@ public class AnnouncementController {
     UserMapper userMapper;
 
     @GetMapping("/getAnnouncements")
-    public List<Announcement> getAISummarize() {
-        var l = announcementMapper.selectList(null);
+    public List<Announcement> getAnnouncements() {
+        QueryWrapper<Announcement> queryWrapper = new QueryWrapper<>();
+        queryWrapper.orderByDesc("time");
+        var l = announcementMapper.selectList(queryWrapper);
         for (var x : l) {
             x.setReleaserName(userMapper.selectById(x.getReleaserId()).getUsername());
         }
         return l;
     }
+
+    @PostMapping("/updateAnnouncement")
+    public Status updateAnnouncement(@RequestBody Announcement announcement) {
+        announcementMapper.insertOrUpdate(announcement);
+        return Status.getSuccessInstance("公告更新成功");
+    }
+
+    @PostMapping("/insertAnnouncement")
+    public Status insertAnnouncement(@RequestBody Announcement announcement) {
+        announcementMapper.insertOrUpdate(announcement);
+        return Status.getSuccessInstance("公告添加成功");
+    }
+
+    @PostMapping("/deleteAnnouncement")
+    public Status deleteAnnouncement(@RequestParam Integer announcementId) {
+        announcementMapper.deleteById(announcementId);
+        return Status.getSuccessInstance("公告删除成功");
+    }
+
 }

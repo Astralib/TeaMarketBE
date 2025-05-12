@@ -219,11 +219,8 @@ public class OrderController {
         return Status.getSuccessInstance();
     }
 
-    @GetMapping("/get-all/{status}/{complained}")
-    public List<OrderStruct> getOrders(@PathVariable("status") Integer status, @PathVariable("complained") String complained) {
-        System.out.println(complained);
-        System.out.println(status);
-
+    @PostMapping("/get-all/{status}")
+    public List<OrderStruct> getOrders(@PathVariable("status") Integer status, @RequestParam Boolean complained) {
         List<OrderStruct> orderStructList = new ArrayList<>();
         QueryWrapper<Order> queryWrapper = new QueryWrapper<>();
         if (status >= 0 && status <= 5) queryWrapper.eq("status", OrderStatus.is(status));
@@ -264,8 +261,8 @@ public class OrderController {
             }
             orderStructList.add(os);
         }
-//        if (complained)
-//            orderStructList.removeIf(orderStruct -> !orderStruct.getOrderInstance().isComplained());
+        if (complained)
+            orderStructList.removeIf(orderStruct -> !orderStruct.getOrderInstance().isComplained());
 
         return orderStructList;
     }

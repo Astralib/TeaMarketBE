@@ -16,8 +16,7 @@ import java.util.Date;
 @NoArgsConstructor
 @TableName("`order`")
 public class Order {
-    @TableId(type = IdType.AUTO)
-    @TableField("order_id")
+    @TableId(value = "order_id", type = IdType.AUTO)
     private Integer orderId;
     @TableField("user_id")
     private Integer userId;
