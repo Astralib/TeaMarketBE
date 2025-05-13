@@ -100,6 +100,11 @@ public class VideoController {
         return videoMapper.getVideoKV(id);
     }
 
+    @GetMapping("/getVideoKV")
+    public List<VideoKeyValue> getVideoKV() {
+        return videoMapper.getVideoKVAll();
+    }
+
     @PostMapping("/removeVideo")
     public Status removeVideo(@RequestParam Integer videoId) {
         videoMapper.deleteById(videoId);

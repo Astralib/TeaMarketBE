@@ -65,14 +65,23 @@ public class Utility {
     }
 
     public static Date parseDate(String dateStr) {
-        try {
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
-            // 设置时区为UTC，因为输入字符串中的Z表示UTC时间
-            sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
-            // 解析字符串并返回Date对象
-            return sdf.parse(dateStr);
-        } catch (Exception e) {
-            return null;
+        String[] possiblePatterns = {
+                "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
+                "yyyy-MM-dd'T'HH:mm"
+        };
+
+        for (String pattern : possiblePatterns) {
+            try {
+                SimpleDateFormat sdf = new SimpleDateFormat(pattern);
+                sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
+                sdf.setLenient(false);
+                return sdf.parse(dateStr);
+            } catch (Exception ignored) {
+
+            }
         }
+
+        return null; // 所有格式都解析失败
     }
+
 }

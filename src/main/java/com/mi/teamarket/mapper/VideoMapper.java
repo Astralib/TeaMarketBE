@@ -16,4 +16,7 @@ public interface VideoMapper extends BaseMapper<Video> {
 
     @Select("select video_id as videoId, title as videoTitle from video where releaser_id = #{id};")
     List<VideoKeyValue> getVideoKV(@Param("id") Integer id);
+
+    @Select("select video_id as videoId, title as videoTitle from video;")
+    List<VideoKeyValue> getVideoKVAll();
 }

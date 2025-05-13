@@ -16,11 +16,20 @@ public class Activity {
     private Integer activityId; // 活动ID
     @TableField("releaser_id")
     private Integer releaserId; // 活动发布人ID
+
+    @TableField(exist = false)
+    private String releaserName;
+
     private String subject; // 活动主题
     @TableField("activity_type")
     private String activityType; // 活动类型
+
     @TableField("relevant_id")
     private Integer relevantId; // 相关文章或视频ID
+
+    @TableField(exist = false)
+    private String relevantName; // 相关文章或视频ID
+
     @TableField("image_id")
     private Integer imageId;
 
@@ -29,9 +38,14 @@ public class Activity {
 
 
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    private Date start; // 开始时间
+    private Date start;
+    @TableField(exist = false)
+    private String startStr;
+
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date end; // 结束时间
+    @TableField(exist = false)
+    private String endStr;
 
     @TableField(exist = false)
     private boolean valid;

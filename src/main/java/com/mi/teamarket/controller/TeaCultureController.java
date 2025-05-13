@@ -1,10 +1,7 @@
 package com.mi.teamarket.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.mi.teamarket.entity.ArticleWithGoodsInfo;
-import com.mi.teamarket.entity.Status;
-import com.mi.teamarket.entity.TeaCulture;
-import com.mi.teamarket.entity.TeaCultureComments;
+import com.mi.teamarket.entity.*;
 import com.mi.teamarket.mapper.TeaCultureCommentsMapper;
 import com.mi.teamarket.mapper.TeaCultureMapper;
 import com.mi.teamarket.mapper.UserMapper;
@@ -128,5 +125,10 @@ public class TeaCultureController {
         teaCultureMapper.deleteById(tcId);
         teaCultureCommentsMapper.delete(new QueryWrapper<TeaCultureComments>().eq("tea_culture_id", tcId));
         return activityController.deleteActivity("article", tcId);
+    }
+
+    @GetMapping("/getTCKeyValue")
+    public List<TeaCultureKeyValue> getTCKeyValue() {
+        return teaCultureMapper.getTeaCultureKV();
     }
 }
