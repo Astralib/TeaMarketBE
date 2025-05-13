@@ -2,7 +2,6 @@ package com.mi.teamarket.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.mi.teamarket.entity.ArticleWithGoodsInfo;
-import com.mi.teamarket.entity.SimpleArticle;
 import com.mi.teamarket.entity.TeaCulture;
 import com.mi.teamarket.entity.TeaCultureKeyValue;
 import org.apache.ibatis.annotations.Mapper;
@@ -14,9 +13,6 @@ import java.util.List;
 
 @Mapper
 public interface TeaCultureMapper extends BaseMapper<TeaCulture> {
-    @Select("select tc_id, title from tea_culture")
-    List<SimpleArticle> getSimples();
-
     @Select(
             "SELECT" +
                     "    tc.tc_id as articleId," +

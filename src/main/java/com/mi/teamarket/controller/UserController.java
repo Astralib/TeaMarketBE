@@ -2,8 +2,11 @@ package com.mi.teamarket.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.mi.teamarket.entity.ServerStatus;
 import com.mi.teamarket.entity.Status;
 import com.mi.teamarket.entity.User;
+import com.mi.teamarket.entity.UserType;
+import com.mi.teamarket.mapper.ServerStatusMapper;
 import com.mi.teamarket.mapper.UserMapper;
 import com.mi.teamarket.utility.Utility;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +22,9 @@ import java.util.Map;
 public class UserController {
     @Autowired
     private UserMapper userMapper;
+
+    @Autowired
+    private ServerStatusMapper serverStatusMapper;
 
     @GetMapping("/select-id/{user_id}")
     public User selectUserById(@PathVariable("user_id") Integer user_id) {
@@ -119,9 +125,7 @@ public class UserController {
     @PostMapping("/insert-user")
     public User insertUser(@RequestBody User user) {
         user.setPasswordHash(Utility.getMD5(user.getPasswordHash()));
-        System.out.println(user);
         userMapper.insert(user);
-
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("phone_number", user.getPhoneNumber());
         return userMapper.selectOne(queryWrapper);
@@ -161,5 +165,62 @@ public class UserController {
             return "没有找到匹配的用户，无法删除";
         }
 
+    }
+
+    @GetMapping("/getStaffs")
+    public List<User> getStaffs() {
+        return userMapper.selectList(new QueryWrapper<User>().ne("user_type", UserType.CUSTOMER));
+    }
+
+    @PostMapping("/addStaff")
+    public Status addStaff(@RequestParam String userType) {
+        if (!UserType.check(userType)) {
+            return Status.getFailureInstance();
+        }
+        User u = new User(false, null, UserType.mapping(userType) + Utility.generateNumbers(5), Utility.getMD5("123456"), Utility.generateNumbers(11), "", userType);
+        userMapper.insertOrUpdate(u);
+        return Status.getSuccessInstance("员工默认密码为 123456");
+    }
+
+    @PostMapping("/delStaff")
+    public Status delStaff(@RequestParam Integer staffId) {
+        var u = userMapper.selectById(staffId);
+        if (u.getUserType().equals(UserType.SERVER)) {
+            var ss = serverStatusMapper.selectOne(new QueryWrapper<ServerStatus>().eq("server_user_id", staffId));
+            if (ss != null) {
+                if (!ss.isAvailable())
+                    return Status.getFailureInstance("当前客服正在帮助客户解决问题");
+                serverStatusMapper.deleteById(ss);
+            }
+        }
+        userMapper.deleteById(staffId);
+        return Status.getSuccessInstance();
+    }
+
+    @PostMapping("/modifyUserType")
+    public Status modifyUserType(@RequestParam Integer userId, @RequestParam String userType1, @RequestParam String userType2) {
+        if (!UserType.check(userType1, userType2)) {
+            return Status.getFailureInstance();
+        }
+
+        if (userType2.equals(UserType.SERVER)) {
+            var ss = new ServerStatus();
+            ss.setServerUserId(userId);
+            ss.setAvailable(true);
+            serverStatusMapper.insertOrUpdate(ss);
+        }
+        if (userType1.equals(UserType.SERVER)) {
+            var ss = serverStatusMapper.selectOne(new QueryWrapper<ServerStatus>().eq("server_user_id", userId));
+            if (ss != null) {
+                if (!ss.isAvailable())
+                    return Status.getFailureInstance("当前客服正在帮助客户解决问题");
+                serverStatusMapper.deleteById(ss);
+            }
+        }
+
+        var u = userMapper.selectById(userId);
+        if (u.getUserType().equals(userType1)) u.setUserType(userType2);
+        userMapper.insertOrUpdate(u);
+        return Status.getSuccessInstance();
     }
 }

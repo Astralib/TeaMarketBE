@@ -27,5 +27,4 @@ public class User {
     private String address;
     @TableField("user_type")
     private String userType;
-
 }

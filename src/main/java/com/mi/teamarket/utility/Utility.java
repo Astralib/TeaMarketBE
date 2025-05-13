@@ -84,4 +84,13 @@ public class Utility {
         return null; // 所有格式都解析失败
     }
 
+    public static String generateNumbers(int size) {
+        Random random = new Random();
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < size; i++) {
+            sb.append(random.nextInt(10));
+        }
+        return sb.toString();
+    }
+
 }
