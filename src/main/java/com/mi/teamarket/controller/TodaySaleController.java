@@ -1,16 +1,15 @@
 package com.mi.teamarket.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.mi.teamarket.entity.Status;
+import com.mi.teamarket.entity.TeaProductKeyValue;
 import com.mi.teamarket.entity.TodaySale;
 import com.mi.teamarket.mapper.TeaProductMapper;
 import com.mi.teamarket.mapper.TodaySaleMapper;
 import com.mi.teamarket.mapper.UserMapper;
 import com.mi.teamarket.utility.Utility;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -37,6 +36,17 @@ public class TodaySaleController {
         }
 
         list.removeIf(obj -> !obj.isValid());
+        return list;
+    }
+
+    @GetMapping("/getAllTodaySales")
+    public List<TodaySale> getAllTodaySales() {
+        var list = todaySaleMapper.selectList(new QueryWrapper<TodaySale>().orderByDesc("start_time"));
+        for (var x : list) {
+            x.setTeaProduct(teaProductMapper.selectById(x.getProductId()));
+            x.setReleaser(userMapper.selectById(x.getReleaserId()));
+            x.setValid(Utility.isCurrentTimeBetweenDates(x.getStartTime(), x.getEndTime()));
+        }
         return list;
     }
 
@@ -70,5 +80,22 @@ public class TodaySaleController {
         var ts = list.getFirst();
         ts.setReleaser(userMapper.selectById(ts.getReleaserId()));
         return ts;
+    }
+
+    @PostMapping("/deleteTodaySaleById/{id}")
+    public Status deleteTodaySaleById(@PathVariable Integer id) {
+        todaySaleMapper.deleteById(id);
+        return Status.getSuccessInstance("删除成功");
+    }
+
+    @GetMapping("/notInSale")
+    List<TeaProductKeyValue> getNotInSale() {
+        return todaySaleMapper.getNotOnSaleKV();
+    }
+
+    @PostMapping("/addTodaySale")
+    public Status addTodaySale(@RequestBody TodaySale ts) {
+        todaySaleMapper.insert(ts);
+        return Status.getSuccessInstance("添加成功");
     }
 }
