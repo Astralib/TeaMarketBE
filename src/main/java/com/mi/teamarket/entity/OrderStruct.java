@@ -9,5 +9,6 @@ public class OrderStruct {
     String complaintRecord;
     String phoneNumber;
     String reply;
+    String expressName;
     String expressNumber;
 }

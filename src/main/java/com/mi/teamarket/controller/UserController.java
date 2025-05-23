@@ -116,10 +116,7 @@ public class UserController {
     public List<User> selectCustomerUsers(@PathVariable("user_type") String userType) {
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("user_type", userType);
-        List<User> users = userMapper.selectList(queryWrapper);
-        System.out.println("查询所有的" + userType + "用户");
-        users.forEach(System.out::println);
-        return users;
+        return userMapper.selectList(queryWrapper);
     }
 
     @PostMapping("/insert-user")
@@ -133,7 +130,7 @@ public class UserController {
 
     @PostMapping("/update/{id}")
     public Status updateUserInfo(@RequestParam String username,
-                                 @RequestParam String password,
+                                 @RequestParam(required = false) String password,
                                  @RequestParam String address,
                                  @RequestParam String phone_num,
                                  @PathVariable Integer id) {
@@ -142,7 +139,12 @@ public class UserController {
             return Status.getFailureInstance("没有找到匹配的用户");
         }
         u.setUsername(username);
-        u.setPasswordHash(Utility.getMD5(password));
+
+        // 只有当 password 不为空时才更新密码
+        if (password != null && !password.isEmpty()) {
+            u.setPasswordHash(Utility.getMD5(password));
+        }
+
         u.setAddress(address);
         u.setPhoneNumber(phone_num);
         userMapper.insertOrUpdate(u);

@@ -21,6 +21,9 @@ public class OrderInstance {
     private List<ProductInfo> productInfoList;
     private Integer totalNum;
     private BigDecimal totalAmount;
+    private String address;
+    private String expressName;
+    private String expressNumber;
     private String status;
     private boolean complained;
 

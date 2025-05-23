@@ -40,7 +40,6 @@ public class OrderController {
     @Autowired
     private OrderExtensionMapper orderExtensionMapper;
 
-
     @PostMapping("/settle-order/{user_id}")
     public Status settleOrder(@PathVariable("user_id") Integer userId) {
 
@@ -81,6 +80,11 @@ public class OrderController {
         newOrder.setTotalAmount(total);
         orderMapper.insertOrUpdate(newOrder);
 
+        var oe = new OrderExtension();
+        oe.setOrderId(newOrder.getOrderId());
+        oe.setAddress(userMapper.selectById(userId).getAddress());
+        orderExtensionMapper.insertOrUpdate(oe);
+
         return Status.getSuccessInstance();
     }
 
@@ -114,12 +118,17 @@ public class OrderController {
         newOrder.setTotalAmount(total);
         orderMapper.insertOrUpdate(newOrder);
 
+        var oe = new OrderExtension();
+        oe.setOrderId(newOrder.getOrderId());
+        oe.setAddress(userMapper.selectById(sc.getUserId()).getAddress());
+        orderExtensionMapper.insertOrUpdate(oe);
+
         return Status.getSuccessInstance();
     }
 
 
     @GetMapping("/get-all/{user_id}/{status}")
-    public List<OrderInstance> getAllOrders(@PathVariable("user_id") Integer userId, @PathVariable("status") int status) {
+    public List<OrderInstance> getAllOrders(@PathVariable("user_id") Integer userId, @PathVariable("status") Integer status) {
         QueryWrapper<Order> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("user_id", userId);
         if (status >= 0 && status <= 5) queryWrapper.eq("status", OrderStatus.is(status));
@@ -142,7 +151,19 @@ public class OrderController {
                 }
                 pi_list.add(pi);
             }
-            var no = new OrderInstance(item.getOrderId(), item.getUserId(), item.getCreationTime(), item.getSettlementTime(), pi_list, item.getTotalNum(), item.getTotalAmount(), item.getStatus(), item.isComplained());
+            var oe = orderExtensionMapper.selectOne(new QueryWrapper<OrderExtension>().eq("order_id", item.getOrderId()));
+            var no = new OrderInstance(item.getOrderId(),
+                    item.getUserId(),
+                    item.getCreationTime(),
+                    item.getSettlementTime(),
+                    pi_list,
+                    item.getTotalNum(),
+                    item.getTotalAmount(),
+                    oe != null ? oe.getAddress() : "未知地址",
+                    oe != null ? oe.getExpressName() : "未知快递公司",
+                    oe != null ? oe.getExpressNumber() : "未知快递单号",
+                    item.getStatus(),
+                    item.isComplained());
             lo.add(no);
         }
         return lo;
@@ -152,6 +173,17 @@ public class OrderController {
     public Status modifyOrderStatus(@PathVariable("order_id") Integer orderId, @PathVariable("status") String status_str) {
         int status = Integer.parseInt(status_str);
         if (status < 0 || status > 5) return Status.getFailureInstance();
+        if (status == OrderStatus.ORDER_CANCELLED) {
+            QueryWrapper<ShoppingCart> queryWrapper = new QueryWrapper<>();
+            queryWrapper.eq("order_id", orderId);
+            var scList = shoppingCartMapper.selectList(queryWrapper);
+            for (var x : scList) {
+                x.setShoppingCartId(null);
+                x.setIsValid(true);
+            }
+            shoppingCartMapper.insert(scList);
+        }
+
         var order = orderMapper.selectById(orderId);
         order.setStatus(OrderStatus.is(status));
         orderMapper.insertOrUpdate(order);
@@ -248,13 +280,28 @@ public class OrderController {
                 }
                 pi_list.add(pi);
             }
-            os.setOrderInstance(new OrderInstance(item.getOrderId(), item.getUserId(), item.getCreationTime(), item.getSettlementTime(), pi_list, item.getTotalNum(), item.getTotalAmount(), item.getStatus(), item.isComplained()));
-
-            os.setUserAddress(userMapper.selectById(item.getUserId()).getAddress());
-            os.setPhoneNumber(userMapper.selectById(item.getUserId()).getPhoneNumber());
+            // todo 加入快递公司名 又该改了
             var oe = orderExtensionMapper.selectOne(new QueryWrapper<OrderExtension>().eq("order_id", item.getOrderId()));
-            if (oe != null)
+            os.setOrderInstance(
+                    new OrderInstance(
+                            item.getOrderId(),
+                            item.getUserId(),
+                            item.getCreationTime(),
+                            item.getSettlementTime(),
+                            pi_list, item.getTotalNum(),
+                            item.getTotalAmount(),
+                            oe != null ? oe.getAddress() : "未知地址",
+                            oe != null ? oe.getExpressName() : "未知快递公司",
+                            oe != null ? oe.getExpressNumber() : "未知快递单号",
+                            item.getStatus(),
+                            item.isComplained()
+                    ));
+            os.setPhoneNumber(userMapper.selectById(item.getUserId()).getPhoneNumber());
+            if (oe != null) {
+                os.setUserAddress(oe.getAddress());
+                os.setExpressName(oe.getExpressName());
                 os.setExpressNumber(oe.getExpressNumber());
+            }
             if (item.isComplained()) {
                 os.setComplaintRecord(complaintMapper.selectOne(new QueryWrapper<Complaint>().eq("order_id", item.getOrderId())).getContent());
                 os.setReply(complaintMapper.selectOne(new QueryWrapper<Complaint>().eq("order_id", item.getOrderId())).getReply());
@@ -268,9 +315,11 @@ public class OrderController {
     }
 
     @PostMapping("/ship")
-    public Status ship(@RequestParam Integer orderId, @RequestParam String expressNumber) {
-        var oe = new OrderExtension();
+    public Status ship(@RequestParam Integer orderId, @RequestParam String expressName, @RequestParam String expressNumber) {
+        var oe = orderExtensionMapper.selectOne(new QueryWrapper<OrderExtension>().eq("order_id", orderId));
+        if (oe == null) oe = new OrderExtension();
         oe.setExpressNumber(expressNumber);
+        oe.setExpressName(expressName);
         oe.setOrderId(orderId);
         orderExtensionMapper.insertOrUpdate(oe);
         modifyOrderStatus(orderId, String.valueOf(OrderStatus.DELIVERED_AWAITING_CONFIRMATION));
